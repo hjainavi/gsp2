@@ -1,0 +1,107 @@
+<openerp>
+	<data>
+	
+        <record id="product_width_height_template" model="ir.ui.view">
+            <field name="name">product.width.height.template</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view" />
+            <field name="arch" type="xml">
+			<!-- Adding fields width and height -->
+				<xpath expr="//group[@string='Stock and Expected Variations']" position="after">
+					<group col="3" string="Product Dimensions" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '=', 'service')]}">
+						<field name = "product_height" />
+						<field name="height_uom" nolabel="1" />
+						<field name = "product_width"  />
+						<field name="width_uom"  nolabel="1"  />
+						<field name = "product_weight" />
+						<field name="weight_uom"  nolabel="1" />
+					</group>
+					<group col="2" string="Service Workcenter" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '!=', 'service')]}">
+						<field name="workcenter_cost_method"/>
+						<field name="workcenter"/>
+					</group>
+				</xpath>
+				<xpath expr="//group[@string='Supply Chain Information']" position='after'>
+					<group string="Manufacturers" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '=', 'service')]}">
+						<div>
+						<field name='manufacturer'/>
+						</div>
+					</group>
+				</xpath>
+			</field>
+		</record>
+		
+		<record id ="product_width_height_product" model ="ir.ui.view">
+			<field name="name">product.width.height.product</field>
+			<field name="model">product.product</field>
+			<field name="inherit_id" ref="product.product_normal_form_view"/>
+			<field name="arch" type="xml">
+			<xpath expr="//group[@string='Stock and Expected Variations']" position="after">
+				<group col="3" string="Product Dimensions" attrs="{'invisible': [('type', '=', 'service')]}">
+					<field name = "product_height" />
+					<field name="height_uom"  nolabel="1"  />
+					<field name = "product_width"  />
+					<field name="width_uom"  nolabel="1"  />
+					<field name = "product_weight" />
+					<field name="weight_uom"  nolabel="1" />
+				</group>
+				<group col="2" string="Service Workcenter" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '!=', 'service')]}">
+					<field name="workcenter_cost_method"/>
+					<field name="workcenter"/>
+				</group>
+			</xpath>
+			<xpath expr="//group[@string='Supply Chain Information']" position='after'>
+					<group string="Manufacturers" attrs="{'invisible': [('type', '=', 'service')]}">
+						<div>
+						<field name='manufacturer'/>
+						</div>
+					</group>
+			</xpath>
+			</field>
+		</record>
+		
+		<record id ="product_width_height_product_tree" model ="ir.ui.view">
+			<field name="name">product.width.height.product.tree</field>
+			<field name="model">product.product</field>
+			<field name="inherit_id" ref="product.product_product_tree_view"/>
+			<field name="arch" type="xml">
+			<xpath expr="//tree/field[@name='ean13']" position='replace'/>
+			<xpath expr="//tree/field[@name='uom_id']" position='after'>
+				<field name = "product_height" />
+				<field name = "product_width"  />
+				<field name = "product_weight" />
+			</xpath>
+			</field>
+			</record>
+		
+		<record id ="product_product_tree_view_many2one" model ="ir.ui.view">
+			<field name="name">product_product_tree_view_many2one</field>
+			<field name="model">product.product</field>
+			<field eval="7" name="priority"/>
+			<field name="arch" type="xml">
+			<tree>
+				<field name = "name" />
+				<field name = "product_width"  />
+				<field name = "product_height" />
+				<field name = "product_weight" />
+				<field name = "categ_id"/>
+				<field name = "virtual_minus_incoming_qty"/>
+			</tree>
+			</field>
+			</record>
+		
+		<!-- Adding the boolean field is_paper -->
+        <record id="view_category_product_paper" model="ir.ui.view">
+            <field name="name">product</field>
+            <field name="model">product.category</field>
+            <field name="inherit_id" ref="product.product_category_form_view" />
+            <field name="arch" type="xml">
+			<!-- Adding fields width and height -->
+				<xpath expr = "/form/sheet/div/h1" position = "after">
+					<label for = "is_paper" class = "oe_inline"/>
+					<field name = "is_paper" class = "oe_inline" />
+				</xpath>
+			</field>
+		</record>		
+	</data>
+</openerp>

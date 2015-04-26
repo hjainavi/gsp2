@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+		<record id="product_manufacturer_tree" model="ir.ui.view">
+            <field name="name">product.manufacturer.tree</field>
+            <field name="model">product.manufacturer</field>
+            <field name="arch" type="xml">
+            	<tree editable="bottom">
+					<field name="manufacturer_partner" required="1"/>
+				</tree>
+			</field>
+		</record>
+	</data>
+</openerp>

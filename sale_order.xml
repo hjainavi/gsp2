@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+		<record id="sale_order_crm_field" model="ir.ui.view">
+            <field name="name">sale.order.crm.field</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form" />
+            <field name="arch" type="xml">
+            	<xpath expr="/form/sheet/h1" position="inside">
+            		<div class="oe_right" name="button_box">
+            			<button class='oe_inline' name='make_bom_cost' string='Get Cost Price' type='object' attrs="{'invisible': [('state', 'not in', ['draft','sent'])]}"/>
+            			<button class="oe_inline oe_stat_button" icon="fa-list-alt" name="do_view_mo"  type="object" attrs="{'invisible': [('state', 'in', ['draft','sent'])]}">
+            				<field name='mo_count' widget='statinfo' string="Manufacturing"/>
+            			</button>
+            			<button class="oe_inline oe_stat_button" icon="fa-shopping-cart" name="do_view_po"  type="object" attrs="{'invisible': [('state', 'in', ['draft','sent'])]}">
+            				<field name='po_count' widget='statinfo' string="Purchases"/>
+            			</button>
+                        <button class="oe_inline oe_stat_button" icon="fa-truck" name="do_view_pickings_sale"  type="object" attrs="{'invisible': [('state', 'in', ['draft','sent'])]}">
+                        	<field name='picking_count' widget='statinfo' string="Shipments"/>
+            			</button>
+                    </div>
+            	</xpath>
+	            <!-- Adding test_order field -->
+	            <xpath expr="/form/sheet/group/group" position= "inside">
+				<field name="test_order" attrs="{'readonly':[('state','not in',['draft','sent'])]}"/>           		
+	            </xpath>
+	            <!-- form_view_ref used for which view to open (of object crm.lead) when clicked on many2one field -->
+				<xpath expr="/form/sheet/group/group" position= "inside">
+					<field name="is_manufacture" attrs="{'readonly':[('state','not in',['draft','sent'])]}"/>
+					<!-- <field name="production_date"/>  -->
+					<!--  <widget type="change_view"/>-->
+				</xpath>
+				<!-- Adding field priority -->
+	            <xpath expr="/form/sheet/group/group/field[@name='pricelist_id']" position= "after">
+					<field name="priority" class = "oe_inline"/>					
+	            </xpath>				
+	            <xpath expr="/form/sheet/group/group/field[@name='date_order']" position= "replace">
+	            	<field name='date_order_gsp'/>
+	            </xpath>
+				<!-- Product Category field in sale.order.line form view-->
+				
+				
+				<!-- All the fields after the price_unit and before the description field in sale order line -->
+				<xpath expr="/form//field[@name='order_line']/form//field[@name='tax_id']" position='after'>
+					<field name='delivery_datetime'/>
+					<field name='expected_delivery'/>
+				</xpath>
+				
+				<xpath expr="/form//field[@name='order_line']/form//field[@name='th_weight']" position='replace'/>
+				
+				<xpath expr="/form//field[@name='order_line']/form//field[@name='price_unit']" position='after'>
+					<field name='estimate_unit_cost'/>
+					<field name='final_cost'/>
+				</xpath>
+				
+				<xpath expr = "/form/sheet/notebook/page[@string='Order Lines']/field[@name='order_line']/form/field[@name='name']" position="after">
+					<group>
+						<field name="is_multi_level" />
+					</group>
+					
+					
+					<div attrs = "{'invisible':[('is_multi_level','!=',True)]}">
+						<label for="multi_level_bom"/>
+						<field name="multi_level_bom"/>
+					</div>
+					
+					
+					
+					<div attrs = "{'invisible':[('is_multi_level','=',True)]}">
+						<div>
+							<label for="manufacture_size"/>
+							<field name="manufacture_size" />
+							<strong>Width </strong><field class = "oe_inline"  name="width" nolabel = "1"  /><b>mm</b>  X  <strong>Height </strong><field  class = "oe_inline" name = "height" nolabel = "1"  /><b>mm</b>
+						</div>
+						<group col="2" colspan="2">
+							<field name = "category_id" attrs="{'readonly':[('state','not in',['draft','sent'])]}"/>
+							<field name = "paper_product" options="{'limit': 1}" context="{'tree_view_ref': 'gsp2.product_product_tree_view_many2one','search_default_categ_id':category_id,'paper_product':True,'print_machine':print_machine}" domain="[('categ_id.is_paper','=',True)]"  attrs = "{'required':[('manufacture_size','!=',False)]}"/>
+						</group>
+						<group col="4" colspan="4">
+							<field name = "warehouse_qty" />
+							<field name = "print_machine" context="{'paper_product':paper_product}" attrs = "{'required':[('manufacture_size','!=',False)]}"/>
+							<field name = "product_count" />
+							<field name = "saturation" />
+							<field name = "paper_amount"/>
+						</group>
+					</div>
+					
+					<div>
+						<label for="additional_works" string="Additional Works (per final product or per paper amount)"/>
+						<field name="additional_works" context="{'additional_works':additional_works}">
+							<tree editable="bottom">
+								<field name="sequence"/>
+								<field name="service" domain="[('type','=','service')]" context="{'additional_service':parent.is_multi_level}"/>
+								<field name="product" domain="[('type','!=','service'),('route_ids','!=','mrp.route_warehouse0_manufacture')]"/>
+								<field name="qty"/>
+								<field name="product_unit"/>
+								<field name="workcenter"/>
+								<field name="costing_service"/>
+							</tree>
+						</field>
+					</div>
+				<separator/>
+				</xpath>	
+				
+				<xpath expr='/form/sheet/notebook/page[@string="Other Information"]' position='after'>
+					<page string="Costing">
+						<group>
+							<div>
+								<h3><label for='sale_sale_line_cost'/></h3>
+								<field name='sale_sale_line_cost'>
+									<tree>
+										<field name='product_id'/>
+										<field name='qty'/>
+										<field name='estimate_unit_cost'/>
+										<field name='final_unit_cost'/>
+									</tree>
+									<form>
+										<group col='4'>
+											<field name='product_id'/>
+											<field name='qty'/>
+											<field name='estimate_unit_cost'/>
+											<field name='final_unit_cost'/>
+										</group>
+										<h4><label for='routing_cost_lines'/></h4>
+										<field name='routing_cost_lines'>
+											<tree editable="bottom">
+												<field name = "name" />
+												<field name = "workcenter_id" />
+												<field name = "qty" />
+												<field name = "total_cost" sum='Total'/>
+												<field name = "saturation" />
+												<field name = "cost_by" />
+											</tree>	
+										</field>
+										<h4><label for='product_cost_lines'/></h4>
+										<field name='product_cost_lines'>
+											<tree editable='bottom'>
+												<field name = "product_id" />
+												<field name = "qty" />
+												<field name = "total_cost" sum='Total'/>
+											</tree>
+										</field>
+										<h4><label for='component_cost_lines'/></h4>
+										<field name='component_cost_lines'>
+											<tree>
+												<field name='product_id'/>
+												<field name = "qty" />
+											</tree>
+											<form>
+												<group col='4'>
+													<field name='product_id'/>
+													<field name = "qty" />
+												</group>
+												<h4><label for='component_routing_cost_lines'/></h4>
+												<field name='component_routing_cost_lines'>
+													<tree editable="bottom">
+														<field name = "name" />
+														<field name = "workcenter_id" />
+														<field name = "qty" />
+														<field name = "total_cost" sum='Total'/>
+														<field name = "saturation" />
+														<field name = "cost_by" />
+													</tree>
+												</field>
+												<h4><label for='component_product_cost_lines'/></h4>
+												<field name='component_product_cost_lines'>
+													<tree editable="bottom">
+														<field name = "product_id" />
+														<field name = "qty" />
+														<field name = "total_cost" sum='Total'/>
+													</tree>
+												</field>
+											</form>
+										</field>
+									</form>
+								</field>
+							</div>
+						</group>
+					</page>
+				</xpath>			
+			</field>
+		</record>
+		
+		<!-- The product belonging to the selected category will be displayed -->
+		<record id="sale_stock_view_changes" model="ir.ui.view">
+            <field name="name">sale.stock</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
+                	<attribute name='context'>{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/form//field[@name='product_id']" position="attributes">
+					<attribute name='context'>{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom}</attribute>
+				</xpath>
+			</field>
+		</record>
+		
+		<!-- inherited view to make the order lines list in the form non-editable
+             for the members of some usability groups -->
+        <!-- OVERRIDING IN SALE_VIEW -->
+        <record id="view_order_form_editable_list" model="ir.ui.view">
+            <field name="name">sale.order.form.editable.list</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="groups_id" eval="[(4, ref('product.group_uos')), (4, ref('product.group_stock_packaging'))]"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='order_line']/tree" position="attributes">
+                    <attribute name="editable"/>
+                </xpath>
+            </field>
+        </record>
+		
+		<record id="do_view_mo" model="ir.actions.act_window">
+            <field name="name">Related Manufacturing Orders</field>
+            <field name="res_model">mrp.production</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('id','=',active_id)]</field>            
+        </record>
+        
+        <record id="do_view_po" model="ir.actions.act_window">
+            <field name="name">Related Purchase Orders</field>
+            <field name="res_model">purchase.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('id','=',active_id)]</field>            
+        </record>
+		
+		<record id="do_view_pickings_sale_action" model="ir.actions.act_window">
+            <field name="name">Pickings for Groups</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        	<field name="domain">[('group_id','=',active_id)]</field>
+        </record>
+				
+	</data>
+</openerp>
+		 		

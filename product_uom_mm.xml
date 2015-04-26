@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+    <record id="product_uom_mm" model="product.uom">
+            <field name="category_id" ref="product.uom_categ_length"/>
+            <field name="name">mm</field>
+            <field name="factor" eval="1000"/>
+            <field name="uom_type">smaller</field>
+        </record>
+    </data>
+    </openerp>

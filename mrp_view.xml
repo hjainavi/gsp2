@@ -1,0 +1,154 @@
+<openerp>
+	<data>
+        <record id="view_inheritance_workcenter" model="ir.ui.view">
+            <field name="name">first.view.inheritance</field>
+            <field name="model">mrp.workcenter</field>
+            <field name="inherit_id" ref="mrp.mrp_workcenter_view" />
+            <field name="arch" type="xml">
+			<!-- Adding fields width,edge space and height -->
+				<xpath expr = "/form/group" position = "inside">
+					<group col="3">
+						<field name = "max_height"/>
+						<field name="max_height_uom"  nolabel="1" />
+						<field name = "max_width" />
+						<field name="max_width_uom"  nolabel="1" />
+						<field name = "edge_space"/>
+						<field name="edge_uom"  nolabel="1" />
+						<field name = "lap_bw_products"/>
+						<field name="lap_uom"  nolabel="1" />
+					</group>
+				</xpath>
+				<xpath expr= "//notebook" position="inside">
+					<page string="Pricing">
+						<group>
+							<field name='pricing'/>
+						</group>
+					</page>
+					<page string="Employees">
+						<group>
+							<field name='employees_allowed'/>
+						</group>
+					</page>
+				</xpath>
+			</field>
+		</record>
+		
+		<record id="delivery_datetime_form_wo" model="ir.ui.view">
+            <field name="name">delivery.datetime.form.wo</field>
+            <field name="model">mrp.production.workcenter.line</field>
+            <field name="inherit_id" ref="mrp_operations.mrp_production_workcenter_form_view_inherit" />
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='sequence']" position='after'>
+            		<field name='delivery_datetime'/>
+            		<field name ="hr_wc_ids" context="{'wc_id':workcenter_id}" options="{'create': false, 'create_edit': false}"/>
+            	</xpath>
+            	<xpath expr="//field[@name='delay']" position='after'>
+            		<field name='employee_cost'/>
+            	</xpath>
+			</field>
+		</record>
+		
+		<record id="view_mrp_production_workcenter_search_inherit" model="ir.ui.view">
+        <field name="name">mrp.production.workcenter.line.select</field>
+        <field name="model">mrp.production.workcenter.line</field>
+        <field name="inherit_id" ref="mrp_operations.view_mrp_production_workcenter_form_view_filter"/>
+        <field name="arch" type="xml">
+            <search string="Search Work Orders">
+            	<!-- <filter string="Orders" name="orders" domain="['|','|',('state','=','draft'),('hr_wc_uid','=',uid),('hr_wc_uid','=',False)]"/>  -->
+            </search>
+        </field>
+        </record>
+		
+		<record model="ir.actions.act_window" id="mrp_operations.mrp_production_wc_action_form">
+        <field name="name">Work Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.production.workcenter.line</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form,gantt,calendar,graph</field>
+        <field name="search_view_id" ref="mrp_operations.view_mrp_production_workcenter_form_view_filter"/>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Click to start a new work order. 
+          </p><p>
+            Work Orders is the list of operations to be performed for each
+            manufacturing order. Once you start the first work order of a
+            manufacturing order, the manufacturing order is automatically
+            marked as started. Once you finish the latest operation of a
+            manufacturing order, the MO is automatically done and the related
+            products are produced.
+          </p>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="mrp_operations.mrp_production_wc_action_planning">
+        <field name="name">Work Orders Planning</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.production.workcenter.line</field>
+        <field name="view_type">form</field>
+        <field name="domain">[('production_state','in',('ready','confirmed','in_production'))]</field>
+        <field name="view_mode">gantt,tree,form,graph,calendar</field>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Click to start a new work order.
+          </p><p>
+            To manufacture or assemble products, and use raw materials and
+            finished products you must also handle manufacturing operations.
+            Manufacturing operations are often called Work Orders. The various
+            operations will have different impacts on the costs of
+            manufacturing and planning depending on the available workload.
+          </p>
+        </field>
+    </record>
+		
+		
+		
+		
+		<record id="delivery_datetime_form_mo" model="ir.ui.view">
+            <field name="name">delivery.datetime.form.mo</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view" />
+            <field name="arch" type="xml">
+            	<xpath expr="//field[@name='date_planned']" position='after'>
+            		<field name='delivery_datetime'/>
+            	</xpath>
+			</field>
+		</record>
+		
+		
+		
+		<record id="cost_workcenter_array_tree" model="ir.ui.view">
+            <field name="name">cost.workcenter.array.tree</field>
+            <field name="model">cost.workcenter.array</field>
+            <field name="arch" type="xml">
+				<tree editable="bottom">
+					<field name="quantity"/>
+					<field name="cost"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="cost_workcenter_tree" model="ir.ui.view">
+            <field name="name">cost.workcenter.tree</field>
+            <field name="model">cost.workcenter</field>
+            <field name="arch" type="xml">
+				<tree>
+					<field name="type"/>
+				</tree>
+			</field>
+		</record>
+		<record id="cost_workcenter_form" model="ir.ui.view">
+            <field name="name">cost.workcenter.form</field>
+            <field name="model">cost.workcenter</field>
+            <field name="arch" type="xml">
+				<form>
+				<group>
+					<field name="type"/>
+				</group>
+				<field name="cost_workcenter_array"/>
+				</form>
+			</field>
+		</record>
+		
+		
+	</data>
+</openerp>

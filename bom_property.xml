@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+    <record id="bom_property_SO" model="mrp.property.group">
+            <field name="name">SO property</field>
+            <field name="description">Sale order property group</field>
+        </record>
+    </data>
+    </openerp>

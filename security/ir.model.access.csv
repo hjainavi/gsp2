@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cost_workcenter_user,cost_workcenter_user,model_cost_workcenter,mrp.group_mrp_user,1,0,0,0
+access_cost_workcenter_manager,cost_workcenter_manager,model_cost_workcenter,mrp.group_mrp_manager,1,1,1,1
+access_cost_workcenter_array_user,cost_workcenter_array_user,model_cost_workcenter_array,mrp.group_mrp_user,1,0,0,0
+access_cost_workcenter_array_manager,cost_workcenter_array_manager,model_cost_workcenter_array,mrp.group_mrp_manager,1,1,1,1
+access_color_paper_salesman,color_paper_salesman,model_color_paper,base.group_sale_salesman,1,0,0,0
+access_color_paper_manager,color_paper_manager,model_color_paper,base.group_sale_manager,1,1,1,1
+access_additional_works,additional_works,model_additional_works,base.group_sale_salesman,1,1,1,1
+access_sale_order_line_bom,sale_order_line_bom,model_sale_order_line_bom,base.group_sale_salesman,1,1,1,1
+access_product_manufacturer_user,product_manufacturer_user,model_product_manufacturer,base.group_user,1,0,0,0
+access_product_manufacturer_manager,product_manufacturer_manager,model_product_manufacturer,base.group_sale_salesman,1,1,1,1
+access_routing_cost,routing_cost,model_routing_cost,base.group_sale_salesman,1,1,1,1
+access_product_cost,product_cost,model_product_cost,base.group_sale_salesman,1,1,1,1
+access_component_cost,component_cost,model_component_cost,base.group_sale_salesman,1,1,1,1
+access_sale_order_line_cost,sale_order_line_cost,model_sale_order_line_cost,base.group_sale_salesman,1,1,1,1
+access_resource_calendar_attendance,resource.calendar.attendance.local,model_resource_calendar_attendance_local,base.group_system,1,1,1,1
+access_mrp_workcenter,mrp_workcenter,model_mrp_workcenter,base.group_sale_salesman,1,0,0,0

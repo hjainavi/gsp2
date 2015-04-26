@@ -1,0 +1,64 @@
+<openerp>
+	<data>
+		<record id="multi_level_bom_tree" model="ir.ui.view">
+            <field name="name">multi.level.bom.tree</field>
+            <field name="model">sale.order.line.bom</field>
+            <field name="arch" type="xml">
+				<tree>
+					<field name='product_id'/>
+					<field name='product_uom_qty'/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="multi_level_bom_form" model="ir.ui.view">
+            <field name="name">multi.level.bom.form</field>
+            <field name="model">sale.order.line.bom</field>
+            <field name="arch" type="xml">
+				<form string="Multi Level Bom">
+						<group col="6">
+							<field name='product_id' />
+							<div>
+								<label for='product_uom_qty'/>
+								<field name='product_uom_qty' class='oe_inline' />
+								<field name='product_uom' class='oe_inline'/>								
+							</div>
+						</group>
+						<div>
+							<label for="manufacture_size"/>
+							<field name="manufacture_size" />
+							<strong>Width </strong><field class = "oe_inline" name="width" nolabel = "1"  /><b>mm</b>  X  <strong>Height </strong><field class = "oe_inline" name = "height" nolabel = "1"  /><b>mm</b>
+						</div>
+						<group col="2" colspan="2">
+							<field name = "bom_category_id" />
+							<field name = "paper_product" options="{'limit': 1}" context="{'tree_view_ref': 'product_product_tree_view_many2one','search_default_categ_id':bom_category_id,'paper_product':True,'print_machine':print_machine}" domain="[('categ_id.is_paper','=',True)]" help="displays paper from the paper type product template" attrs = "{'required':[('manufacture_size','!=',False)]}"/>
+						</group>
+						<group col="4" colspan="4">
+							<field name = "warehouse_qty" />
+							<field name = "print_machine" context="{'paper_product':paper_product}" attrs = "{'required':[('manufacture_size','!=',False)]}"/>
+							<field name = "product_count" />
+							<field name = "saturation" />
+							<field name = "paper_amount"/>
+						</group>
+						<group col="4">
+						<div>
+							<label for="additional_works" string="Additional Works (per product quantity or per paper amount)"/>
+							<field name="additional_works">
+								<tree editable="bottom">
+									<field name="sequence"/>
+									<field name="service" domain="[('type','=','service')]"/>
+									<field name="product" domain="[('type','!=','service'),('route_ids','!=','mrp.route_warehouse0_manufacture')]"/>
+									<field name="qty"/>
+									<field name="product_unit"/>
+									<field name="workcenter"/>
+									<field name="costing_service"/>
+								</tree>
+							</field>
+						</div>
+						</group>
+				</form>
+			</field>
+		</record>
+		
+	</data>
+</openerp>

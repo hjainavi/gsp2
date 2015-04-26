@@ -1,0 +1,39 @@
+<openerp>
+	<data>
+	
+        <record id="color_paper_view_form" model="ir.ui.view">
+            <field name="name">color.paper.view.form</field>
+            <field name="model">color.paper</field>
+            <field name="arch" type="xml">
+				<form string="Saturation">
+					<group col="4">
+						<field name = "side_1" />
+						<field name = "side_2" />
+					</group>
+				</form>
+			</field>
+		</record>
+		
+		<record id="color_paper_view_tree" model="ir.ui.view">
+            <field name="name">color.paper.view.tree</field>
+            <field name="model">color.paper</field>
+            <field name="arch" type="xml">
+				<tree string="Saturation">
+					<field name = "side_1" />
+					<field name = "side_2" />
+				</tree>
+			</field>
+		</record>
+		
+		<record id="action_color_paper" model="ir.actions.act_window">
+			<field name="name">Saturation</field>
+			<field name="res_model">color.paper</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+		<menuitem action="action_color_paper" id="menu_action_color_paper"
+		 name="Saturation" parent="base.menu_base_config" sequence="17"/>
+		
+		
+	</data>
+</openerp>
