@@ -94,7 +94,7 @@ class procurement_order(models.Model):
                                                 DEFAULT_SERVER_DATETIME_FORMAT)
         date_planned = format_date_planned - relativedelta(days=procurement.product_id.produce_delay or 0.0)
         date_planned = date_planned - relativedelta(days=procurement.company_id.manufacturing_lead)
-        print "----------------in _get_date_planned---date_planned procurement.order",date_planned
+        print "-----------in _get_date_planned---date_planned procurement.order",date_planned
         return date_planned
     
     def make_mo(self, cr, uid, ids, context=None):

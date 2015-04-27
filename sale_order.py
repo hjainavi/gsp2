@@ -450,6 +450,7 @@ class sale_order(models.Model):
                         bom_id=self.create_bom_all(cr,uid,component, sale_line_mrp_property)
                         if bom_id:
                             self.delete_bom(cr,uid,component)
+                            print "===========================writing property on sale line"
                             self.pool.get('sale.order.line.bom').write(cr, uid, component.id, {'bom_line': bom_id})
                             print "written in component -bom",bom_id
                 
@@ -465,11 +466,10 @@ class sale_order(models.Model):
                 bom_id=self.create_bom_all(cr,uid,line, sale_line_mrp_property)
                 if bom_id:
                     self.delete_bom(cr,uid,line)
+                    print "===========================writing property on sale line"
                     self.pool.get('sale.order.line').write(cr, uid, line.id, {'bom_line': bom_id,'property_ids': [(6,0,sale_line_mrp_property)]})
                     print "written in line -bom",bom_id
-            else:
-                sale_line_mrp_property=self.get_sale_line_property(cr,uid,line)
-                self.pool.get('sale.order.line').write(cr, uid, line.id, {'property_ids': [(6,0,sale_line_mrp_property)]})
+            
         
         self.estimate_line_cost(cr,uid,sale_obj)
         self.estimate_time(cr,uid,sale_obj)
