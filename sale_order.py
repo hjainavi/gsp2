@@ -138,14 +138,28 @@ class sale_order_line(models.Model):
     estimate_unit_cost=fields.Float('Estimate Unit Cost',readonly=True)
     final_cost=fields.Float(compute='check_final_cost',string='Final Unit Cost')
     delivery_datetime=fields.Datetime('Deadline')
-    expected_delivery=fields.Datetime('Expected Delivery Date',readonly=True,copy=False)
+    expected_delivery=fields.Datetime(compute='get_expected_delivery_date',string='Expected Delivery Date',copy=False)
     
     @api.constrains('manufacture_size','width','height','is_multi_level','product_count','paper_product','print_machine')
     def check_for_product_count(self):
         if self.is_multi_level==False and self.manufacture_size!=False and self.product_count == 0.0 :
             raise Warning(('Product count cannot be zero .  Please revise the data entered in product-line "%s" ') % (self.product_id.name))
     
-    
+    '''@api.one
+    @api.depends()
+    def get_expected_delivery_date(self):
+        print "-------------in def get_expected_delivery_date(self)"
+        self.expected_delivery=fields.Datetime.now()
+        if self.bom_line and self.bom_line.routing_id:
+            if self.is_multi_level:
+                pass
+            else:
+                data=[]
+                for line in self.bom_line.routing_id.workcenter_lines:
+                    data.append((line.sequence,line.workcenter_id,line.time_est_hour_nbr))
+                sorted_data=sorted(data, key=lambda tup: tup[0])
+                for line in sorted_data:
+                    working_time='''
         
     @api.one
     @api.depends('mo_id.state')
@@ -334,6 +348,9 @@ class sale_order(models.Model):
             print "picking_count============",picking_count
             self.picking_count=len(picking_count)
     
+    def _get_date_planned(self, cr, uid, order, line, start_date, context=None):
+        date_planned = datetime.strptime(line.order_id.date_confirm, DEFAULT_SERVER_DATETIME_FORMAT) + timedelta(days=line.delay or 0.0)
+        return date_planned
         
     is_manufacture = fields.Boolean(string='Manufacture',default=False)
     production_date = fields.Datetime('Production Date')
@@ -344,7 +361,6 @@ class sale_order(models.Model):
     picking_count=fields.Char(compute='_count_all')
     edited_by_bom_button=fields.Boolean()
     sale_sale_line_cost=fields.One2many('sale.order.line.cost','sale_sale_line_cost',string='Sale Line Cost',readonly=True,copy=False)
-    date_order_gsp=fields.Datetime(string='Date', required=True, readonly=True, select=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, copy=False,default=fields.Datetime.now)
 
     def make_bom1(self,cr,uid,ids,context=None):
         if not context:context={}
@@ -472,15 +488,9 @@ class sale_order(models.Model):
             
         
         self.estimate_line_cost(cr,uid,sale_obj)
-        self.estimate_time(cr,uid,sale_obj)
         self.write(cr,uid,id,{'edited_by_bom_button':True})
     
     
-    def estimate_time(self,cr,uid,sale_obj):
-        for line in sale_obj.order_line:
-            if line.bom_line and line.bom_line.routing_id:
-                pass
-        
     def bom_lines_cost(self,cr,uid,line):
         bom_lines=[]
         total_bom_cost=0.0

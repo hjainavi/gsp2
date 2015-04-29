@@ -34,9 +34,7 @@
 	            <xpath expr="/form/sheet/group/group/field[@name='pricelist_id']" position= "after">
 					<field name="priority" class = "oe_inline"/>					
 	            </xpath>				
-	            <xpath expr="/form/sheet/group/group/field[@name='date_order']" position= "replace">
-	            	<field name='date_order_gsp'/>
-	            </xpath>
+	            
 				<!-- Product Category field in sale.order.line form view-->
 				
 				
