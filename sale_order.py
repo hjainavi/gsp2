@@ -175,6 +175,7 @@ class sale_order_line(models.Model):
         self._cr.execute("select sum(hour) from mrp_production_workcenter_line where date_planned < %s and state in ('draft','pause')", (start_dt,))
         wc_hrs=self._cr.fetchall()[0][0]
         print "----------------------wc_hrs",wc_hrs
+        wc_interval=self.env['resource.calendar'].get_working_intervals_of_day(id=line.workcenter_id.calendar_id.id,)
         
     @api.one
     @api.depends('mo_id.state')
