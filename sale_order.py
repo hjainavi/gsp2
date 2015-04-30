@@ -4,7 +4,8 @@ from openerp.exceptions import Warning
 import math
 import openerp.addons.decimal_precision as dp
 from openerp import SUPERUSER_ID
-
+from datetime import datetime, timedelta
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class stock_picking(models.Model):
@@ -145,9 +146,10 @@ class sale_order_line(models.Model):
         if self.is_multi_level==False and self.manufacture_size!=False and self.product_count == 0.0 :
             raise Warning(('Product count cannot be zero .  Please revise the data entered in product-line "%s" ') % (self.product_id.name))
     
-    '''@api.one
+    @api.one
     @api.depends()
     def get_expected_delivery_date(self):
+        self.sudo()
         print "-------------in def get_expected_delivery_date(self)"
         self.expected_delivery=fields.Datetime.now()
         if self.bom_line and self.bom_line.routing_id:
@@ -155,11 +157,24 @@ class sale_order_line(models.Model):
                 pass
             else:
                 data=[]
+                start_dt=self.order_id.date_confirm or fields.Datetime.now()
+                end_dt=self.order_id.date_confirm or fields.Datetime.now()
                 for line in self.bom_line.routing_id.workcenter_lines:
                     data.append((line.sequence,line.workcenter_id,line.time_est_hour_nbr))
-                sorted_data=sorted(data, key=lambda tup: tup[0])
+                sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
                 for line in sorted_data:
-                    working_time='''
+                    self.wc_line_end_time(start_dt,end_dt,line)
+                    #start_dt=res[0]
+                    #end_dt=res[1]
+    
+    @api.model
+    def wc_line_end_time(self,start_dt,end_dt,line):
+        wc_hrs_left=0.0
+        #start_dt=datetime.strptime(start_dt,DEFAULT_SERVER_DATETIME_FORMAT)-timedelta(days=4)
+        print "--------------start_dt",start_dt
+        self._cr.execute("select sum(hour) from mrp_production_workcenter_line where date_planned < %s and state in ('draft','pause')", (start_dt,))
+        wc_hrs=self._cr.fetchall()[0][0]
+        print "----------------------wc_hrs",wc_hrs
         
     @api.one
     @api.depends('mo_id.state')
@@ -685,7 +700,7 @@ class sale_order(models.Model):
                         "workcenter_id":object.print_machine.id,
                         "cycle_nbr":nbr_cycle_print_machine,
                         "hour_nbr":nbr_cycle_print_machine*(object.print_machine.time_cycle/object.print_machine.capacity_per_cycle)-(nbr_cycle_print_machine * (object.print_machine.time_cycle or 0.0) * (object.print_machine.time_efficiency or 1.0)),
-                        "time_est_hour_nbr":nbr_cycle_print_machine*(object.print_machine.time_cycle/object.print_machine.capacity_per_cycle),
+                        "time_est_hour_nbr":nbr_cycle_print_machine*(object.print_machine.time_cycle/object.print_machine.capacity_per_cycle)+object.print_machine.time_start+object.print_machine.time_stop,
                         "saturation":object.saturation and object.saturation.name_get()[0][1] or 'default',
                         "qty":object.paper_amount,
                         "cost_by":'Paper'
@@ -719,7 +734,7 @@ class sale_order(models.Model):
                            "workcenter_id":rec.workcenter.id,
                            "cycle_nbr":cycle_nbr,
                            "hour_nbr":cycle_nbr*(rec.workcenter.time_cycle/rec.workcenter.capacity_per_cycle)-(cycle_nbr * (rec.workcenter.time_cycle or 0.0) * (rec.workcenter.time_efficiency or 1.0)),
-                           "time_est_hour_nbr":cycle_nbr*(rec.workcenter.time_cycle/rec.workcenter.capacity_per_cycle),
+                           "time_est_hour_nbr":cycle_nbr*(rec.workcenter.time_cycle/rec.workcenter.capacity_per_cycle) +rec.workcenter.time_start+rec.workcenter.time_stop,
                            "qty":cost_cycle,
                            'cost_by':cost_by
                            }
