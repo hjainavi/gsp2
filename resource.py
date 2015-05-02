@@ -287,8 +287,7 @@ class resource_calendar(osv.osv):
         ##harsh## added resource_in_dict to get resource/workcenter for which interval is being calculated
         for res_dict in date_and_hours_by_cal:
             resource_in_dict=False
-            if len(res_dict)==4:dt_str, hours, calendar_id,resource_in_dict=res_dict
-            else:dt_str, hours, calendar_id=res_dict
+            dt_str, hours, calendar_id,resource_in_dict=res_dict
             result = self.schedule_hours(
                 cr, uid, calendar_id, hours,
                 day_dt=datetime.datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S').replace(second=0),
@@ -308,7 +307,7 @@ class mrp_production_workcenter_line(osv.osv):
         ops = self.browse(cr, uid, ids, context=context)
         ##harsh## added op.workcenter_id.resource_id.id in date_and_hours_by_cal to send resource_id to 
         ######### following methods(basically to send to def get_leave_intervals)
-        date_and_hours_by_cal = [(op.date_planned, op.hour, op.workcenter_id.calendar_id.id,op.workcenter_id.resource_id.id or None) for op in ops if op.date_planned]
+        date_and_hours_by_cal = [(op.date_planned, op.hour, op.workcenter_id.calendar_id.id,op.workcenter_id.resource_id.id or False) for op in ops if op.date_planned]
         #print "workcenters new00000000.......===============",[op.workcenter_id.name for op in ops if op.date_planned]
         intervals = self.pool.get('resource.calendar').interval_get_multi(cr, uid, date_and_hours_by_cal)
         #print "intervals......",intervals
