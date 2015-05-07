@@ -150,19 +150,22 @@ class sale_order_line(models.Model):
     @api.depends()
     def get_expected_delivery_date(self):
         self.sudo()
-        print "-------------in def get_expected_delivery_date(self)"
+        #print "-------------in def get_expected_delivery_date(self)"
         self.expected_delivery=fields.Datetime.now()
         if self.bom_line and self.bom_line.routing_id:
             if self.is_multi_level:
                 pass
             else:
                 data=[]
-                start_dt=self.order_id.date_confirm or fields.Datetime.now()
-                end_dt=self.order_id.date_confirm or fields.Datetime.now()
+                start_dt=datetime.strptime(self.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
+                end_dt=datetime.strptime(self.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
+                #print "======type(start_dt)",start_dt
+                #print "======type(end_dt)",type(end_dt)
                 for line in self.bom_line.routing_id.workcenter_lines:
                     data.append((line.sequence,line.workcenter_id,line.time_est_hour_nbr))
                 sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
                 for line in sorted_data:
+                    #print "-------------line",line
                     self.wc_line_end_time(start_dt,end_dt,line)
                     #start_dt=res[0]
                     #end_dt=res[1]
