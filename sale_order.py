@@ -170,8 +170,40 @@ class sale_order_line(models.Model):
                     #start_dt=res[0]
                     #end_dt=res[1]
     
-    @api.model
-    def wc_line_end_time(self,start_dt,end_dt,line):
+    def _get_working_interval_and_hours_in_day(self,cr,uid,start_dt,line):
+        hours_in_day=0.0
+        working_interval_today=self.pool.get('resource.calendar').get_working_intervals_of_day(cr,uid,id=line[1].calendar_id.id,start_dt=start_dt,end_dt=None,leaves=None,compute_leaves=True,resource_id=line[1].resource_id.id,default_interval=(8, 16))
+        print "\n==========working intervals",working_interval_today
+        for i in working_interval_today:
+            time_in_day=i[1]-i[0]
+            hours_in_day+=time_in_day.total_seconds()/3600.0
+        return working_interval_today,hours_in_day
+        
+    def _get_sorted_planned_intervals(self,cr,uid,start_dt,end_dt=None):
+        """if no end_dt is given then this func returns all the workorder intervals 
+        whose date_planned < start_dt.replace(hour=23,minute=59,second=59)
+            else if end_dt is mentioned then this returns all the intervals of workorder whose date_planned is between
+            start_dt and end_dt
+        """
+        intervals=[]
+        if end_dt:
+            cr.execute("select id from mrp_production_workcenter_line where date_planned < %s and date_planned > %s and state in ('draft','pause')", (end_dt,start_dt))
+        else:
+            cr.execute("select id from mrp_production_workcenter_line where date_planned < %s and state in ('draft','pause')", (start_dt.replace(hour=23,minute=59,second=59),)) 
+        ids=[i[0] for i in cr.fetchall()]
+        print "----------------------ids",ids
+        ops = self.pool.get('mrp.production.workcenter.line').browse(cr, uid, ids)
+        date_and_hours_by_cal = [(op.date_planned, op.hour, op.workcenter_id.calendar_id.id,op.workcenter_id.resource_id.id or False) for op in ops if op.date_planned]
+        intervals_dict = self.pool.get('resource.calendar').interval_get_multi(cr, uid, date_and_hours_by_cal)
+        print "\n======intervals_dict",intervals_dict
+        # extracting all intervals from the 
+        for i in intervals_dict:
+            for j in intervals_dict.get(i):
+                intervals.append(j)
+        intervals=sorted(intervals, key=lambda date_time: date_time[0])
+        return intervals
+        
+    
         wc_hrs_left=0.0
         #start_dt=datetime.strptime(start_dt,DEFAULT_SERVER_DATETIME_FORMAT)-timedelta(days=4)
         print "--------------start_dt",start_dt
