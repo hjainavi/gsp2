@@ -166,17 +166,18 @@ class sale_order_line(models.Model):
                 sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
                 for line in sorted_data:
                     #print "-------------line",line
-                    self.wc_line_end_time(start_dt,end_dt,line)
+                    self.wc_line_end_time(start_dt,line)
                     #start_dt=res[0]
                     #end_dt=res[1]
     
     def _get_working_interval_and_hours_in_day(self,cr,uid,start_dt,line):
         hours_in_day=0.0
+        #print "----------line=",line
         working_interval_today=self.pool.get('resource.calendar').get_working_intervals_of_day(cr,uid,id=line[1].calendar_id.id,start_dt=start_dt,end_dt=None,leaves=None,compute_leaves=True,resource_id=line[1].resource_id.id,default_interval=(8, 16))
-        print "\n==========working intervals",working_interval_today
         for i in working_interval_today:
             time_in_day=i[1]-i[0]
             hours_in_day+=time_in_day.total_seconds()/3600.0
+        #print "-----------working_interval_today,hours_in_day",working_interval_today,hours_in_day
         return working_interval_today,hours_in_day
         
     def _get_sorted_planned_intervals(self,cr,uid,start_dt,end_dt=None):
@@ -191,11 +192,9 @@ class sale_order_line(models.Model):
         else:
             cr.execute("select id from mrp_production_workcenter_line where date_planned < %s and state in ('draft','pause')", (start_dt.replace(hour=23,minute=59,second=59),)) 
         ids=[i[0] for i in cr.fetchall()]
-        print "----------------------ids",ids
         ops = self.pool.get('mrp.production.workcenter.line').browse(cr, uid, ids)
         date_and_hours_by_cal = [(op.date_planned, op.hour, op.workcenter_id.calendar_id.id,op.workcenter_id.resource_id.id or False) for op in ops if op.date_planned]
         intervals_dict = self.pool.get('resource.calendar').interval_get_multi(cr, uid, date_and_hours_by_cal)
-        print "\n======intervals_dict",intervals_dict
         # extracting all intervals from the 
         for i in intervals_dict:
             for j in intervals_dict.get(i):
@@ -203,14 +202,99 @@ class sale_order_line(models.Model):
         intervals=sorted(intervals, key=lambda date_time: date_time[0])
         return intervals
         
+    def _hour_end_time(self, cr,uid,start_dt,line,planned_intervals,delay):
+        '''
+        start_dt === dateteime from whwre scceduling will start
+        line ==== line.sequence,line.workcenter_id,line.time_est_hour_nbr))
+        planned_intervals =========  intervals of workorders scheduled after start_dt till start_dt(23:59:59)
+        delay ============ hours to fit in empty intervals
+        returns end_datetime after fitting the delay in empty intervals
+                '''
+        delay_endtime=False
+        while (delay>0):
+            print "=====================delay",delay
+            print "===============start_dt",start_dt
+            print "========planned_intervals",planned_intervals
+            #print "-----------in while loop"
+            intervals_to_remove=[]
+            hours_to_remove=0.0
+            remaining_intervals=[]
+            remaining_hours=0.0
+            working_interval_today,hours_in_day=self._get_working_interval_and_hours_in_day(cr, uid, start_dt, line)
+            
+
+            if working_interval_today:
+                for i in planned_intervals:
+                    if i[1] <= start_dt.replace(hour=23,minute=59,second=59) and i[0] >= start_dt: 
+                        hours_to_remove += (i[1]-i[0]).total_seconds()/3600.0
+                        intervals_to_remove.append(i)
+                print "=========hours_to_remove",hours_to_remove
+                print "==========intervals_to_remove",intervals_to_remove
+                planned_intervals=list(set(planned_intervals)-set(intervals_to_remove))
+                print "========planned_intervals=====after removal",planned_intervals
+                
+                if intervals_to_remove:
+                    for i in working_interval_today :
+                        remaining_intervals += self.pool.get('resource.calendar').interval_remove_leaves(i,intervals_to_remove)
+                # additional delay to schedule for overlapping planned intervals
+                    remaining_hours += (i[1]-i[0] for i in remaining_intervals)
+                    delay += (remaining_hours+hours_to_remove-hours_in_day) if (remaining_hours+hours_to_remove-hours_in_day)>0 else 0.0
+                    #print "=========remaining_intervals",remaining_intervals
+                    #print "=========remaining_hours",remaining_hours
+                    #print "=========delay",delay
+                    interval_schedule_hours=self.pool.get('resource.calendar').interval_schedule_hours(remaining_intervals,delay)
+                    #print "==============intervals_schedule_hours",interval_schedule_hours
+                    if interval_schedule_hours==remaining_intervals:
+                        delay -= remaining_hours
+                        if delay==0.0:delay_endtime=interval_schedule_hours[-1][-1]
+                    else:
+                        delay_endtime=interval_schedule_hours[-1][-1] 
+                        break
+                    #print "=========delay",delay
+                else:
+                    interval_schedule_hours=self.pool.get('resource.calendar').interval_schedule_hours(working_interval_today,delay)
+                    print "===============working_interval_today in else",working_interval_today
+                    print "==============intervals_schedule_hours in else",interval_schedule_hours
+                    if interval_schedule_hours==working_interval_today:
+                        delay -= hours_in_day
+                        if delay==0.0:delay_endtime=interval_schedule_hours[-1][-1]
+                    else:
+                        delay_endtime=interval_schedule_hours[-1][-1] 
+                        break
+                    print "=========delay",delay
+                    
+            start_dt=start_dt.replace(hour=0,minute=0,second=0)+timedelta(days=1)
+            end_dt=start_dt.replace(hour=23,minute=59,second=59)
+            planned_intervals += self._get_sorted_planned_intervals(cr, uid, start_dt,end_dt)
+            #print "========planned_intervals",planned_intervals
+        print "================delay_end_time",delay_endtime
+        return delay_endtime
+
     
-        wc_hrs_left=0.0
-        #start_dt=datetime.strptime(start_dt,DEFAULT_SERVER_DATETIME_FORMAT)-timedelta(days=4)
-        print "--------------start_dt",start_dt
-        self._cr.execute("select sum(hour) from mrp_production_workcenter_line where date_planned < %s and state in ('draft','pause')", (start_dt,))
-        wc_hrs=self._cr.fetchall()[0][0]
-        print "----------------------wc_hrs",wc_hrs
-        wc_interval=self.env['resource.calendar'].get_working_intervals_of_day(id=line.workcenter_id.calendar_id.id,start_dt=start_dt,end_dt=None,leaves=None,compute_leaves=True,)
+    def wc_line_end_time(self,cr,uid,start_dt,line):
+        delay=0.0
+        past_intervals=[]
+        intervals_to_remove=[]
+        print "\n \n \n \n--------------start_dt",start_dt
+        past_intervals=self._get_sorted_planned_intervals(cr, uid, start_dt)
+        
+        for i in past_intervals:
+            if i[0] < start_dt: #i[0] = start date of interval ,,,adding hours of all intervals whose start date is before start_dt 
+                print "=======i",i
+                delay += (i[1]-i[0]).total_seconds()/3600.0
+                intervals_to_remove.append(i)
+        planned_intervals=list(set(past_intervals)-set(intervals_to_remove))
+        print "========planned_intervals",planned_intervals
+        print"=======delay--------------before looooooooooooooooooooooooop",delay
+        delay_endtime=self._hour_end_time(cr, uid, start_dt, line, planned_intervals, delay)
+        
+        planned_intervals=self._get_sorted_planned_intervals(cr, uid, delay_endtime,delay_endtime.replace(hour=23,minute=59,second=59))
+        print "\n \n \n \n \n \n \n \n \n \n \n \n --------------line_end_time" 
+        line_end_time=self._hour_end_time(cr, uid, delay_endtime, line, planned_intervals, line[2])
+        print "===========line_end_time",line_end_time
+        
+        
+        
         
     @api.one
     @api.depends('mo_id.state')
