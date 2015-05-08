@@ -137,7 +137,7 @@ class sale_order_line(models.Model):
     bom_line=fields.Many2one('mrp.bom',copy=False)
     paper_amount=fields.Float(compute='_get_product_count',string ='Paper Amount to be used')
     estimate_unit_cost=fields.Float('Estimate Unit Cost',readonly=True)
-    final_cost=fields.Float(compute='check_final_cost',string='Final Unit Cost')
+    final_cost=fields.Float(compute='check_final_cost',string='Final Unit Cost',store=True)
     delivery_datetime=fields.Datetime('Deadline')
     expected_delivery=fields.Datetime(compute='get_expected_delivery_date',string='Expected Delivery Date',copy=False)
     
