@@ -520,7 +520,7 @@ class sale_order(models.Model):
         if not context:context={}
         sale_obj=self.browse(cr,uid,ids[0])
         import datetime
-        self.write(cr,uid,ids[0],{'date_order':datetime.datetime.now()},context)
+        #self.write(cr,uid,ids[0],{'date_order':datetime.datetime.now()},context)
         print "action button confirm sale_obj.edited_by_bom_button",sale_obj.edited_by_bom_button
         if sale_obj.edited_by_bom_button==False: self.make_bom_cost(cr,uid,ids,context)
         return super(sale_order, self).action_button_confirm(cr, uid, ids, context)        
