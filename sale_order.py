@@ -27,9 +27,6 @@ class stock_move(models.Model):
         return id
 
 
-
-
-
 class sale_order_line(models.Model):
     _inherit="sale.order.line"
     _description = "gsp2 sale order line"
@@ -139,7 +136,7 @@ class sale_order_line(models.Model):
     estimate_unit_cost=fields.Float('Estimate Unit Cost',readonly=True)
     final_cost=fields.Float(compute='check_final_cost',string='Final Unit Cost',store=True)
     delivery_datetime=fields.Datetime('Deadline')
-    expected_delivery=fields.Datetime(compute='get_expected_delivery_date',string='Expected Delivery Date',copy=False)
+    expected_delivery=fields.Datetime(string='Expected Delivery Date')
     
     @api.constrains('manufacture_size','width','height','is_multi_level','product_count','paper_product','print_machine')
     def check_for_product_count(self):
