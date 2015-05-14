@@ -496,21 +496,23 @@ class sale_order(models.Model):
     sale_delivery_date=fields.One2many('sale.line.delivery.date','sale_delivery_date_rel',String="Expected Delivery Date")
     
     
-    
+    def get_sale_lines_time(self,cr,uid,sale_obj):
+        uid=SUPERUSER_ID
+        all_date_lines=[]
+        del_lines=[]
         for line in sale_obj.order_line:
-            print "==============",list(line.bom_line)
-            ids_property=list(set(map(int, line.property_ids or [])))
-            print "---------------ids_property",ids_property
-            cr.execute('select order_id from sale_order_line_property_rel where property_id in %s',(tuple(ids_property),))
-            result=cr.fetchall()
-            print "==============cr.fetchall()",result
-            print "==========len(cr.fetchall)",len(result)
-            try:
-                #self.pool.get('mrp.property').unlink(cr, SUPERUSER_ID, ids)
-                #self.pool.get('sale.order.line').write(cr, uid, line.id, {'bom_line': 14})
-                pass
-            except: print "error in make_bom button"
-            #self.pool.get('sale.order.line').write(cr, uid, line.id, {'property_ids': [(6,0,sale_line_mrp_property)]})
+            if line.bom_line and line.bom_line.routing_id:
+                date_line_dict={'product_id':line.product_id.id,
+                               'qty':line.product_uom_qty,
+                               'sale_line_id':line.id,
+                               }
+                all_date_lines.append([0,0,date_line_dict]) 
+        for line in sale_obj.sale_delivery_date:
+            del_lines.append([2,line.id])
+        
+        if del_lines:self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_delivery_date':del_lines})
+        self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_delivery_date':all_date_lines})
+                
     
     def action_button_confirm(self, cr, uid, ids, context=None):
         if not context:context={}
@@ -619,6 +621,7 @@ class sale_order(models.Model):
             
         
         self.estimate_line_cost(cr,uid,sale_obj)
+        self.get_sale_lines_time(cr,uid,sale_obj)
         self.write(cr,uid,id,{'edited_by_bom_button':True})
     
     
@@ -675,7 +678,7 @@ class sale_order(models.Model):
         for line in sale_obj.sale_sale_line_cost:
             del_lines.append([2,line.id])
         
-        self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_sale_line_cost':del_lines})
+        if del_lines:self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_sale_line_cost':del_lines})
         self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_sale_line_cost':all_sale_lines})
     
     
