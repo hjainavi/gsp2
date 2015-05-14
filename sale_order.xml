@@ -175,6 +175,17 @@
 							</div>
 						</group>
 					</page>
+				</xpath>
+				<xpath expr='/form/sheet/notebook/page[@string="Costing"]' position='after'>
+					<page string="Delivery Dates">
+						<field name="sale_delivery_date" readonly="1">
+							<tree string="Delivery date">
+								<field name="product_id"/>
+								<field name="qty"/>
+								<field name="expected_delivery"/>
+							</tree>
+						</field>
+					</page>
 				</xpath>			
 			</field>
 		</record>

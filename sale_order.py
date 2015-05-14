@@ -493,11 +493,10 @@ class sale_order(models.Model):
     picking_count=fields.Char(compute='_count_all')
     edited_by_bom_button=fields.Boolean()
     sale_sale_line_cost=fields.One2many('sale.order.line.cost','sale_sale_line_cost',string='Sale Line Cost',readonly=True,copy=False)
-
-    def make_bom1(self,cr,uid,ids,context=None):
-        if not context:context={}
-        if type(ids)==type([]):ids=ids[0]
-        sale_obj=self.browse(cr,uid,ids)
+    sale_delivery_date=fields.One2many('sale.line.delivery.date','sale_delivery_date_rel',String="Expected Delivery Date")
+    
+    
+    
         for line in sale_obj.order_line:
             print "==============",list(line.bom_line)
             ids_property=list(set(map(int, line.property_ids or [])))
@@ -884,6 +883,15 @@ class sale_order(models.Model):
             routing_id=routing_obj.create(cr,uid,vals_routing,context)
             return routing_id
         return False        
+    
+class sale_line_delivery_date(models.Model):
+    _name="sale.line.delivery.date"
+    
+    product_id=fields.Many2one('product.product',string="Product")
+    qty=fields.Float(string='Quantity')
+    sale_line_id=fields.Many2one('sale.order.line')
+    sale_delivery_date_rel=fields.Many2one('sale.order')
+    expected_delivery=fields.Datetime(compute="get_expected_delivery_date",string='Delivery Date')
 
 
 class routing_cost(models.Model):
