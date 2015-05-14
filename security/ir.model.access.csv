@@ -15,3 +15,4 @@ access_component_cost,component_cost,model_component_cost,base.group_sale_salesm
 access_sale_order_line_cost,sale_order_line_cost,model_sale_order_line_cost,base.group_sale_salesman,1,1,1,1
 access_resource_calendar_attendance,resource.calendar.attendance.local,model_resource_calendar_attendance_local,base.group_system,1,1,1,1
 access_mrp_workcenter,mrp_workcenter,model_mrp_workcenter,base.group_sale_salesman,1,0,0,0
+access_sale_line_delivery_date,access_sale_line_delivery_date,model_sale_line_delivery_date,,1,1,1,1
