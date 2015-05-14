@@ -97,8 +97,8 @@ class sale_order_line(models.Model):
                 if add_work.service.workcenter_cost_method=='paper':amount=self.paper_amount*add_work.qty
                 if add_work.service.workcenter_cost_method=='product':amount=self.product_uom_qty*add_work.qty
                 weight+=add_work.product.weight_net*amount
-            desc=str(self.product_id.name) + ' Total weight ' + str(weight) + "\n"
-            desc+= str(self.width or '') + str(self.width and ' mm ' or '') + ' ' + str(self.height or '') + str(self.height and ' mm ' or '') + str(self.category_id.name or '') + ' ' + str(self.paper_product.name or '') + ' ' + str(self.paper_product.product_weight or '') + str(self.paper_product.product_weight and self.paper_product.weight_uom.name or '') + ' ' + str(self.saturation.display_name or '') + "\n"
+            desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) + "\n"
+            desc+= str(self.width or '') + str(self.width and ' mm ' or '') + ' ' + str(self.height or '') + str(self.height and ' mm ' or '') +   (self.category_id.name or '') + ' ' + (self.paper_product.name or '') + ' ' + str(self.paper_product.product_weight or '') + str(self.paper_product.product_weight and self.paper_product.weight_uom.name or '') + ' ' + str(self.saturation.display_name or '') + "\n"
             for add_work in self.additional_works:
                     desc+= str(add_work.sequence or '') + ' ' + str(add_work.service.name or '') + '\n'
         self.name=desc
