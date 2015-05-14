@@ -180,7 +180,7 @@
 		</record>
 		
 		<!-- The product belonging to the selected category will be displayed -->
-		<record id="sale_stock_view_changes" model="ir.ui.view">
+		<!-- <record id="sale_stock_view_changes" model="ir.ui.view">
             <field name="name">sale.stock</field>
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale_stock.view_order_form_inherit" />
@@ -192,7 +192,7 @@
 					<attribute name='context'>{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom}</attribute>
 				</xpath>
 			</field>
-		</record>
+		</record>  -->
 		
 		<!-- inherited view to make the order lines list in the form non-editable
              for the members of some usability groups -->
