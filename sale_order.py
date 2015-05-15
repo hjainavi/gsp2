@@ -834,7 +834,9 @@ class sale_line_delivery_date(models.Model):
                     for i in working_interval_today :
                         remaining_intervals += self.pool.get('resource.calendar').interval_remove_leaves(i,intervals_to_remove)
                 # additional delay to schedule for overlapping planned intervals
-                    remaining_hours += (i[1]-i[0] for i in remaining_intervals)
+                    for i in remaining_intervals:
+                        print "===============i===",i
+                        remaining_hours += (i[1]-i[0]).total_seconds()/3600.0
                     delay += (remaining_hours+hours_to_remove-hours_in_day) if (remaining_hours+hours_to_remove-hours_in_day)>0 else 0.0
                     #print "=========remaining_intervals",remaining_intervals
                     #print "=========remaining_hours",remaining_hours
