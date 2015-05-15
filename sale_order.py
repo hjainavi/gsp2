@@ -332,9 +332,10 @@ class sale_order(models.Model):
             self.picking_count=len(picking_count)
     
     def _get_date_planned(self, cr, uid, order, line, start_date, context=None):
-        date_planned = datetime.strptime(line.order_id.date_confirm, DEFAULT_SERVER_DATETIME_FORMAT) + timedelta(days=line.delay or 0.0)
+        date_planned = datetime.strptime(order.date_confirm, DEFAULT_SERVER_DATETIME_FORMAT) + timedelta(days=line.delay or 0.0)
         return date_planned
-        
+    
+    date_confirm=fields.Datetime('Confirmation Date', readonly=True, select=True, help="Date on which sales order is confirmed.", copy=False)
     is_manufacture = fields.Boolean(string='Manufacture',default=False)
     production_date = fields.Datetime('Production Date')
     test_order = fields.Boolean('Test Order')
