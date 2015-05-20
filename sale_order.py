@@ -768,11 +768,14 @@ class sale_line_delivery_date(models.Model):
                     for wc_line in obj.bom_line.routing_id.workcenter_lines:
                         data.append((wc_line.sequence,wc_line.workcenter_id,wc_line.time_est_hour_nbr))
                     sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
-                    for line in sorted_data:
-                        #print "-------------line",line
-                        self.wc_line_end_time(start_dt,line)
+                    for sorted_line in sorted_data:
+                        print "-------------line",sorted_line
+                        res=self.wc_line_end_time(start_dt,sorted_line)
+                        start_dt=res
+                        print "======in get_expected_delivery_date===",res
                         #start_dt=res[0]
                         #end_dt=res[1]
+                    line.expected_delivery=start_dt
     
     def wc_line_end_time(self,cr,uid,start_dt,line):
         delay=0.0
