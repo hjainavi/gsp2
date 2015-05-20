@@ -782,10 +782,12 @@ class sale_line_delivery_date(models.Model):
         past_intervals=[]
         intervals_to_remove=[]
         print "\n \n \n \n--------------start_dt",start_dt
-        past_intervals=self._get_sorted_planned_intervals(cr, uid, start_dt)
+        now_dt=datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
+        past_intervals=self._get_sorted_planned_intervals(cr, uid, now_dt)
         
         for i in past_intervals:
-            if i[0] < start_dt: #i[0] = start date of interval ,,,adding hours of all intervals whose start date is before start_dt 
+            if i[0] < now_dt: 
+            #i[0] = start date of interval ,,,adding hours of all intervals whose start date is before start_dt 
                 print "=======i",i
                 delay += (i[1]-i[0]).total_seconds()/3600.0
                 intervals_to_remove.append(i)
@@ -836,9 +838,9 @@ class sale_line_delivery_date(models.Model):
                     for i in working_interval_today :
                         remaining_intervals += self.pool.get('resource.calendar').interval_remove_leaves(i,intervals_to_remove)
                 # additional delay to schedule for overlapping planned intervals
-                    for i in remaining_intervals:
+                    for j in remaining_intervals:
                         print "===============i===",i
-                        remaining_hours += (i[1]-i[0]).total_seconds()/3600.0
+                        remaining_hours += (j[1]-j[0]).total_seconds()/3600.0
                     delay += (remaining_hours+hours_to_remove-hours_in_day) if (remaining_hours+hours_to_remove-hours_in_day)>0 else 0.0
                     #print "=========remaining_intervals",remaining_intervals
                     #print "=========remaining_hours",remaining_hours
@@ -880,7 +882,7 @@ class sale_line_delivery_date(models.Model):
         for i in working_interval_today:
             time_in_day=i[1]-i[0]
             hours_in_day+=time_in_day.total_seconds()/3600.0
-        #print "-----------working_interval_today,hours_in_day",working_interval_today,hours_in_day
+        print "-----------working_interval_today,hours_in_day",working_interval_today,hours_in_day
         return working_interval_today,hours_in_day
         
     def _get_sorted_planned_intervals(self,cr,uid,start_dt,end_dt=None):
@@ -903,6 +905,7 @@ class sale_line_delivery_date(models.Model):
             for j in intervals_dict.get(i):
                 intervals.append(j)
         intervals=sorted(intervals, key=lambda date_time: date_time[0])
+        print "====== in _get_sorted_planned_intervals",intervals
         return intervals
     
         
