@@ -794,13 +794,20 @@ class sale_line_delivery_date(models.Model):
         planned_intervals=list(set(past_intervals)-set(intervals_to_remove))
         print "========planned_intervals",planned_intervals
         print"=======delay--------------before looooooooooooooooooooooooop",delay
-        delay_endtime=self._hour_end_time(cr, uid, start_dt, line, planned_intervals, delay)
-        # the planned intervals from delay_endtime will not be carried forward coz they will be consumed or will be automatically used
+        delay_endtime=self._hour_end_time(cr, uid, now_dt, line, planned_intervals, delay)
+        # the planned intervals from delay_endtime will not be carried forward coz they will be consumed 
+        # or will be taken into account again when the planning time is less than the start_dt of intervals
         # if delay_endtime is less than the next date of workorder of the same day
-        planned_intervals=self._get_sorted_planned_intervals(cr, uid, delay_endtime,delay_endtime.replace(hour=23,minute=59,second=59))
+        
+        planning_time=delay_endtime if delay_endtime>start_dt else start_dt
+        print "=========delay_endtime=",delay_endtime
+        print "=========planning_time=",planning_time
+        print "=========start_dt======",start_dt
+        planned_intervals=self._get_sorted_planned_intervals(cr, uid, planning_time,planning_time.replace(hour=23,minute=59,second=59))
         print "\n \n \n \n \n \n \n \n \n \n \n \n --------------line_end_time" 
-        line_end_time=self._hour_end_time(cr, uid, delay_endtime, line, planned_intervals, line[2])
+        line_end_time=self._hour_end_time(cr, uid, planning_time, line, planned_intervals, line[2])
         print "===========line_end_time",line_end_time
+        return line_end_time
         
     
     def _hour_end_time(self, cr,uid,start_dt,line,planned_intervals,delay):
