@@ -752,6 +752,7 @@ class sale_line_delivery_date(models.Model):
     def get_expected_delivery_date(self):
         self.sudo()
         print "-------------in def get_expected_delivery_date(self)",self
+        machine_start_end={}
         for line in self:
             print "\n \n \n \n \n \n \n \n \n \n \n \n----------sale line id",line.sale_line_id
             #line.expected_delivery=fields.Datetime.now()
@@ -768,38 +769,46 @@ class sale_line_delivery_date(models.Model):
                     for wc_line in obj.bom_line.routing_id.workcenter_lines:
                         data.append((wc_line.sequence,wc_line.workcenter_id,wc_line.time_est_hour_nbr))
                     sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
+                    ###mo_start_time=fields.Datetime.now()
                     for sorted_line in sorted_data:
                         print "-------------line",sorted_line
-                        res=self.wc_line_end_time(start_dt,sorted_line)
-                        start_dt=res
-                        print "======in get_expected_delivery_date===",res
+                        planning_time,line_end_time=self.wc_line_end_time(start_dt,sorted_line,machine_start_end)
+                        machine_start_end[sorted_line[1].id]=(planning_time,line_end_time)
+                        start_dt=line_end_time
+                        print "======in get_expected_delivery_date(planning_time,line_end_time)===",planning_time,line_end_time
                         #start_dt=res[0]
                         #end_dt=res[1]
                     line.expected_delivery=start_dt
+                    print "-----------------machine_start_end",machine_start_end
     
-    def wc_line_end_time(self,cr,uid,start_dt,line):
+    def wc_line_end_time(self,cr,uid,start_dt,line,machine_start_end):
         delay=0.0
         past_intervals=[]
         intervals_to_remove=[]
         print "\n \n \n \n--------------start_dt",start_dt
-        now_dt=datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
-        past_intervals=self._get_sorted_planned_intervals(cr, uid, now_dt)
-        
-        for i in past_intervals:
-            if i[0] < now_dt: 
-            #i[0] = start date of interval ,,,adding hours of all intervals whose start date is before start_dt 
-                print "=======i",i
-                delay += (i[1]-i[0]).total_seconds()/3600.0
-                intervals_to_remove.append(i)
-        planned_intervals=list(set(past_intervals)-set(intervals_to_remove))
-        print "========planned_intervals",planned_intervals
-        print"=======delay--------------before looooooooooooooooooooooooop",delay
-        delay_endtime=self._hour_end_time(cr, uid, now_dt, line, planned_intervals, delay)
+        if not machine_start_end.get(line[1].id,False):
+            now_dt=datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
+            past_intervals=self._get_sorted_planned_intervals(cr, uid, now_dt)
+            
+            for i in past_intervals:
+                if i[0] < now_dt: 
+                #i[0] = start date of interval ,,,adding hours of all intervals whose start date is before start_dt 
+                    print "=======i",i
+                    delay += (i[1]-i[0]).total_seconds()/3600.0
+                    intervals_to_remove.append(i)
+            planned_intervals=list(set(past_intervals)-set(intervals_to_remove))
+            print "========planned_intervals",planned_intervals
+            print"=======delay--------------before looooooooooooooooooooooooop",delay
+            delay_endtime=self._hour_end_time(cr, uid, now_dt, line, planned_intervals, delay)
+            planning_time=max(delay_endtime,start_dt)
         # the planned intervals from delay_endtime will not be carried forward coz they will be consumed 
         # or will be taken into account again when the planning time is less than the start_dt of intervals
         # if delay_endtime is less than the next date of workorder of the same day
-        
-        planning_time=delay_endtime if delay_endtime>start_dt else start_dt
+        else:
+            machine_start_end_time=machine_start_end.get(line[1].id,(0,datetime.datetime(1111,1,1,1,1)))[1]
+            planning_time=max(start_dt,machine_start_end_time)
+        ### planning_time====scheduling time 
+        ### for the workcenter hours is max(delay_endtime,start_dt,machine_start_end[line[1].id][1])
         print "=========delay_endtime=",delay_endtime
         print "=========planning_time=",planning_time
         print "=========start_dt======",start_dt
@@ -807,7 +816,7 @@ class sale_line_delivery_date(models.Model):
         print "\n \n \n \n \n \n \n \n \n \n \n \n --------------line_end_time" 
         line_end_time=self._hour_end_time(cr, uid, planning_time, line, planned_intervals, line[2])
         print "===========line_end_time",line_end_time
-        return line_end_time
+        return planning_time,line_end_time
         
     
     def _hour_end_time(self, cr,uid,start_dt,line,planned_intervals,delay):
