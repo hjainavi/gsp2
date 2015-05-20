@@ -744,7 +744,7 @@ class sale_line_delivery_date(models.Model):
     
     product_id=fields.Many2one('product.product',string="Product")
     qty=fields.Float(string='Quantity')
-    sale_line_id=fields.Many2one('sale.order.line')
+    sale_line_id=fields.Many2one('sale.order.line',string="Sale Line")
     sale_delivery_date_rel=fields.Many2one('sale.order')
     expected_delivery=fields.Datetime(compute="get_expected_delivery_date",string='Delivery Date')
     
@@ -753,8 +753,8 @@ class sale_line_delivery_date(models.Model):
         self.sudo()
         print "-------------in def get_expected_delivery_date(self)",self
         for line in self:
-            print "----------sale line id",line.sale_line_id
-            line.expected_delivery=fields.Datetime.now()
+            print "\n \n \n \n \n \n \n \n \n \n \n \n----------sale line id",line.sale_line_id
+            #line.expected_delivery=fields.Datetime.now()
             line.sale_line_id.write({'expected_delivery':fields.Datetime.now()})
             obj=line.sale_line_id
             if obj.bom_line and obj.bom_line.routing_id:
@@ -763,11 +763,10 @@ class sale_line_delivery_date(models.Model):
                 else:
                     data=[]
                     start_dt=datetime.strptime(obj.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
-                    end_dt=datetime.strptime(obj.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
                     #print "======type(start_dt)",start_dt
                     #print "======type(end_dt)",type(end_dt)
-                    for line in obj.bom_line.routing_id.workcenter_lines:
-                        data.append((line.sequence,line.workcenter_id,line.time_est_hour_nbr))
+                    for wc_line in obj.bom_line.routing_id.workcenter_lines:
+                        data.append((wc_line.sequence,wc_line.workcenter_id,wc_line.time_est_hour_nbr))
                     sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
                     for line in sorted_data:
                         #print "-------------line",line
