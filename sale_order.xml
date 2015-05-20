@@ -214,17 +214,14 @@
 		<!-- inherited view to make the order lines list in the form non-editable
              for the members of some usability groups -->
         <!-- OVERRIDING IN SALE_VIEW -->
-        <record id="view_order_form_editable_list" model="ir.ui.view">
-            <field name="name">sale.order.form.editable.list</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="groups_id" eval="[(4, ref('product.group_uos')), (4, ref('product.group_stock_packaging'))]"/>
+        <record id="sale.view_order_form_editable_list" model="ir.ui.view">
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='order_line']/tree" position="attributes">
-                    <attribute name="editable"/>
+                    <attribute name="editable">bottom</attribute>
                 </xpath>
             </field>
         </record>
+        
 		
 		<record id="do_view_mo" model="ir.actions.act_window">
             <field name="name">Related Manufacturing Orders</field>
