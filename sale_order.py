@@ -756,8 +756,12 @@ class sale_line_delivery_date(models.Model):
         for line in self:
             print "\n \n \n \n \n \n \n \n \n \n \n \n----------sale line id",line.sale_line_id
             #line.expected_delivery=fields.Datetime.now()
-            line.sale_line_id.write({'expected_delivery':fields.Datetime.now()})
             obj=line.sale_line_id
+            if obj.order_id.date_confirm:
+                line.expected_delivery=obj.expected_delivery
+                continue
+            # if the sale order gets confirmed then the delivery date will not change and the value from sale line
+            # will be displayed in delivery dates tab
             if obj.bom_line and obj.bom_line.routing_id:
                 if obj.is_multi_level:
                     pass
@@ -779,6 +783,7 @@ class sale_line_delivery_date(models.Model):
                         #start_dt=res[0]
                         #end_dt=res[1]
                     line.expected_delivery=start_dt
+                    line.sale_line_id.write({'expected_delivery':start_dt})
                     print "-----------------machine_start_end",machine_start_end
     
     def wc_line_end_time(self,cr,uid,start_dt,line,machine_start_end):
