@@ -377,22 +377,22 @@ class sale_order(models.Model):
     
     
     def estimate_routing_cost(self,cr,uid,routing_obj):
-            routing_lines=[]
-            routing_cost=0.0
-            total_routing_cost=0.0
-            for line_wc in routing_obj.workcenter_lines:
-                routing_cost=self.pool.get('cost.workcenter').calc_cost(cr,SUPERUSER_ID,line_wc.workcenter_id.id,line_wc.qty,line_wc.saturation)
-                total_routing_cost=total_routing_cost+routing_cost
-                routing_cost_dict={'name':line_wc.name,
-                                   'workcenter_id':line_wc.workcenter_id.id,
-                                   'qty':line_wc.qty,
-                                   'total_cost':routing_cost,
-                                   'saturation':line_wc.saturation,
-                                   'cost_by':line_wc.cost_by
-                                   }
-                routing_lines.append([0,0,routing_cost_dict]) 
-                #coz if 4+4 cycles will be doubled but cost is by paper amount that's why line.qty
-            return total_routing_cost,routing_lines
+        routing_lines=[]
+        routing_cost=0.0
+        total_routing_cost=0.0
+        for line_wc in routing_obj.workcenter_lines:
+            routing_cost=self.pool.get('cost.workcenter').calc_cost(cr,SUPERUSER_ID,line_wc.workcenter_id.id,line_wc.qty,line_wc.saturation)
+            total_routing_cost=total_routing_cost+routing_cost
+            routing_cost_dict={'name':line_wc.name,
+                               'workcenter_id':line_wc.workcenter_id.id,
+                               'qty':line_wc.qty,
+                               'total_cost':routing_cost,
+                               'saturation':line_wc.saturation,
+                               'cost_by':line_wc.cost_by
+                               }
+            routing_lines.append([0,0,routing_cost_dict]) 
+            #coz if 4+4 cycles will be doubled but cost is by paper amount that's why line.qty
+        return total_routing_cost,routing_lines
     
     ''' for final routing cost if extra work order is added ( not used) '''
     def final_workorders_cost(self,cr,uid,mo_obj):
@@ -806,15 +806,16 @@ class sale_line_delivery_date(models.Model):
             print"=======delay--------------before looooooooooooooooooooooooop",delay
             delay_endtime=self._hour_end_time(cr, uid, now_dt, line, planned_intervals, delay)
             planning_time=max(delay_endtime,start_dt)
+            print "=========delay_endtime=",delay_endtime
         # the planned intervals from delay_endtime will not be carried forward coz they will be consumed 
         # or will be taken into account again when the planning time is less than the start_dt of intervals
         # if delay_endtime is less than the next date of workorder of the same day
         else:
-            machine_start_end_time=machine_start_end.get(line[1].id,(0,datetime.datetime(1111,1,1,1,1)))[1]
+            machine_start_end_time=machine_start_end.get(line[1].id,(0,datetime(1111,1,1,1,1)))[1]
             planning_time=max(start_dt,machine_start_end_time)
+            print "==========machine_start_end_time====",machine_start_end_time
         ### planning_time====scheduling time 
         ### for the workcenter hours is max(delay_endtime,start_dt,machine_start_end[line[1].id][1])
-        print "=========delay_endtime=",delay_endtime
         print "=========planning_time=",planning_time
         print "=========start_dt======",start_dt
         planned_intervals=self._get_sorted_planned_intervals(cr, uid, planning_time,planning_time.replace(hour=23,minute=59,second=59))
