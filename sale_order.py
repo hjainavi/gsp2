@@ -805,14 +805,14 @@ class sale_line_delivery_date(models.Model):
             print "========planned_intervals",planned_intervals
             print"=======delay--------------before looooooooooooooooooooooooop",delay
             delay_endtime=self._hour_end_time(cr, uid, now_dt, line, planned_intervals, delay)
-            planning_time=max(delay_endtime,start_dt)
+            planning_time=max(delay_endtime,start_dt) if delay_endtime and start_dt else delay_endtime or start_dt
             print "=========delay_endtime=",delay_endtime
         # the planned intervals from delay_endtime will not be carried forward coz they will be consumed 
         # or will be taken into account again when the planning time is less than the start_dt of intervals
         # if delay_endtime is less than the next date of workorder of the same day
         else:
             machine_start_end_time=machine_start_end.get(line[1].id,(0,datetime(1111,1,1,1,1)))[1]
-            planning_time=max(start_dt,machine_start_end_time)
+            planning_time=max(start_dt,machine_start_end_time) if start_dt else machine_start_end_time
             print "==========machine_start_end_time====",machine_start_end_time
         ### planning_time====scheduling time 
         ### for the workcenter hours is max(delay_endtime,start_dt,machine_start_end[line[1].id][1])
