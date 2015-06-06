@@ -765,30 +765,34 @@ class sale_line_delivery_date(models.Model):
             # will be displayed in delivery dates tab
             if obj.bom_line and obj.bom_line.routing_id:
                 if obj.is_multi_level:
-                    pass
-                else:
-                    data=[]
-                    start_dt=datetime.strptime(obj.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
-                    #print "======type(start_dt)",start_dt
-                    #print "======type(end_dt)",type(end_dt)
-                    for wc_line in obj.bom_line.routing_id.workcenter_lines:
-                        data.append((wc_line.sequence,wc_line.workcenter_id,wc_line.time_est_hour_nbr))
-                    sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
-                    count_for_mo_date=0
-                    for sorted_line in sorted_data:
-                        print "-------------line",sorted_line
-                        planning_time,line_end_time=self.wc_line_end_time(start_dt,sorted_line,machine_start_end)
-                        machine_start_end[sorted_line[1].id]=(planning_time,line_end_time)
-                        start_dt=line_end_time
-                        if count_for_mo_date==0:line.sale_line_id.bom_line.write({'mo_start_date':planning_time})
-                        count_for_mo_date +=1
-                        print "======in get_expected_delivery_date(planning_time,line_end_time)===",planning_time,line_end_time
-                        #start_dt=res[0]
-                        #end_dt=res[1]
-                    line.expected_delivery=start_dt
-                    line.sale_line_id.write({'expected_delivery':start_dt})
-                    print "-----------------machine_start_end",machine_start_end
+                    for multi_line in obj.multi_level_bom:
+                        start_dt,machine_start_end=self._get_time_and_machine_times(self,multi_line,line,machine_start_end)
+                start_dt,machine_start_end=self._get_time_and_machine_times(self,obj,line,machine_start_end)
+                line.expected_delivery=start_dt
+                line.sale_line_id.write({'expected_delivery':start_dt})
+                print "-----------------machine_start_end",machine_start_end
     
+    def _get_time_and_machine_times(self,obj,line,machine_start_end):
+        data=[]
+        start_dt=datetime.strptime(line.sale_line_id.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
+        #print "======type(start_dt)",start_dt
+        #print "======type(end_dt)",type(end_dt)
+        for wc_line in obj.bom_line.routing_id.workcenter_lines:
+            data.append((wc_line.sequence,wc_line.workcenter_id,wc_line.time_est_hour_nbr))
+        sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
+        count_for_mo_date=0
+        for sorted_line in sorted_data:
+            print "-------------line",sorted_line
+            planning_time,line_end_time=self.wc_line_end_time(start_dt,sorted_line,machine_start_end)
+            machine_start_end[sorted_line[1].id]=(planning_time,line_end_time)
+            start_dt=line_end_time
+            if count_for_mo_date==0:obj.bom_line.write({'mo_start_date':planning_time})
+            count_for_mo_date +=1
+            print "======in get_expected_delivery_date(planning_time,line_end_time)===",planning_time,line_end_time
+            #start_dt=res[0]
+            #end_dt=res[1]
+        return start_dt,machine_start_end
+
     def wc_line_end_time(self,cr,uid,start_dt,line,machine_start_end):
         delay=0.0
         past_intervals=[]
