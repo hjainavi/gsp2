@@ -333,6 +333,7 @@ class sale_order(models.Model):
     
     def _get_date_planned(self, cr, uid, order, line, start_date, context=None):
         date_planned = datetime.strptime(order.date_confirm, DEFAULT_SERVER_DATETIME_FORMAT) + timedelta(days=line.delay or 0.0)
+        print "date_planned==========sale_order",date_planned
         return date_planned
     
     date_confirm=fields.Datetime('Confirmation Date', readonly=True, select=True, help="Date on which sales order is confirmed.", copy=False)
@@ -773,12 +774,14 @@ class sale_line_delivery_date(models.Model):
                     for wc_line in obj.bom_line.routing_id.workcenter_lines:
                         data.append((wc_line.sequence,wc_line.workcenter_id,wc_line.time_est_hour_nbr))
                     sorted_data=sorted(data, key=lambda tup: tup[0]) # sorting according to sequence
-                    ###mo_start_time=fields.Datetime.now()
+                    count_for_mo_date=0
                     for sorted_line in sorted_data:
                         print "-------------line",sorted_line
                         planning_time,line_end_time=self.wc_line_end_time(start_dt,sorted_line,machine_start_end)
                         machine_start_end[sorted_line[1].id]=(planning_time,line_end_time)
                         start_dt=line_end_time
+                        if count_for_mo_date==0:line.sale_line_id.bom_line.write({'mo_start_date':planning_time})
+                        count_for_mo_date +=1
                         print "======in get_expected_delivery_date(planning_time,line_end_time)===",planning_time,line_end_time
                         #start_dt=res[0]
                         #end_dt=res[1]
@@ -805,14 +808,16 @@ class sale_line_delivery_date(models.Model):
             print "========planned_intervals",planned_intervals
             print"=======delay--------------before looooooooooooooooooooooooop",delay
             delay_endtime=self._hour_end_time(cr, uid, now_dt, line, planned_intervals, delay)
-            planning_time=max(delay_endtime,start_dt) if delay_endtime and start_dt else delay_endtime or start_dt
+            if delay_endtime and start_dt:planning_time=max(delay_endtime,start_dt)
+            else:planning_time= delay_endtime or start_dt
             print "=========delay_endtime=",delay_endtime
         # the planned intervals from delay_endtime will not be carried forward coz they will be consumed 
         # or will be taken into account again when the planning time is less than the start_dt of intervals
         # if delay_endtime is less than the next date of workorder of the same day
         else:
             machine_start_end_time=machine_start_end.get(line[1].id,(0,datetime(1111,1,1,1,1)))[1]
-            planning_time=max(start_dt,machine_start_end_time) if start_dt else machine_start_end_time
+            if start_dt and machine_start_end_time: planning_time=max(start_dt,machine_start_end_time)
+            else: planning_time=machine_start_end_time or start_dt
             print "==========machine_start_end_time====",machine_start_end_time
         ### planning_time====scheduling time 
         ### for the workcenter hours is max(delay_endtime,start_dt,machine_start_end[line[1].id][1])

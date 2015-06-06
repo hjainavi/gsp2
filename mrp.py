@@ -48,6 +48,7 @@ class mrp_production_workcenter_line(models.Model):
 
 class mrp_bom(models.Model):
     _inherit='mrp.bom'
+    mo_start_date=fields.Datetime("Starting date of MO")
     
     def false_bom_find(self, cr, uid, product_tmpl_id=None, product_id=None, properties=None, context=None):
         if properties is None:
