@@ -354,7 +354,7 @@ class sale_order(models.Model):
         all_date_lines=[]
         del_lines=[]
         for line in sale_obj.order_line:
-            if line.bom_line and line.bom_line.routing_id:
+            if line.bom_line:
                 date_line_dict={'product_id':line.product_id.id,
                                'qty':line.product_uom_qty,
                                'sale_line_id':line.id,
@@ -768,7 +768,7 @@ class sale_line_delivery_date(models.Model):
                 continue
             # if the sale order gets confirmed then the delivery date will not change and the value from sale line
             # will be displayed in delivery dates tab
-            if obj.bom_line and obj.bom_line.routing_id:
+            if obj.bom_line:
                 if obj.is_multi_level:
                     for multi_line in obj.multi_level_bom:
                         start_dt,machine_start_end=self._get_time_and_machine_times(self,multi_line,line,machine_start_end)
