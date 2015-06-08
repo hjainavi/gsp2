@@ -21,6 +21,7 @@
 				<xpath expr= "//notebook" position="inside">
 					<page string="Pricing">
 						<group>
+							<field name="per_sq_meter"/>
 							<field name='pricing'/>
 						</group>
 					</page>
@@ -141,7 +142,7 @@
             <field name="model">cost.workcenter</field>
             <field name="arch" type="xml">
 				<form>
-				<group>
+				<group col="4">
 					<field name="type"/>
 				</group>
 				<field name="cost_workcenter_array"/>

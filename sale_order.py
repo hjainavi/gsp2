@@ -83,7 +83,7 @@ class sale_order_line(models.Model):
                     if add_work.service.workcenter_cost_method=='paper':amount=rec.paper_amount*add_work.qty
                     if add_work.service.workcenter_cost_method=='product':amount=rec.product_uom_qty*add_work.qty*self.product_uom_qty
                     weight+=add_work.product.weight_net*amount
-            desc=str(self.product_id.name) + ' Total weight ' + str(weight) +  "\n"
+            desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) +  "\n"
             
             for rec in self.multi_level_bom:
                 desc+= str(rec.product_id.name or '') + ' ' + str(rec.width or '') + str(rec.width and ' mm' or '') + ' ' +  str(rec.height or '') + str(rec.height and ' mm ' or '') + str(rec.bom_category_id.name or '') + ' ' + str(rec.paper_product.name or '') + ' ' + str(rec.paper_product.product_weight or '') + str(rec.paper_product.product_weight and rec.paper_product.weight_uom.name or '') + ' ' + str(rec.saturation.display_name or '') + "\n"
@@ -665,6 +665,8 @@ class sale_order(models.Model):
         def print_routing(object):
             routing_lines=[]
             saturation=1
+            if object._name=='sale.order.line.bom':check123=True
+            elif object._name=='sale.order.line' :check123=False
             if object.saturation and "0" not in object.saturation.name_get()[0][1]: saturation=2
             nbr_cycle_print_machine=saturation*math.ceil(object.paper_amount/object.print_machine.capacity_per_cycle)
             print_routing_line={"name":object.product_id.name+" print",
@@ -674,9 +676,12 @@ class sale_order(models.Model):
                         "hour_nbr":nbr_cycle_print_machine*(object.print_machine.time_cycle/object.print_machine.capacity_per_cycle)-(nbr_cycle_print_machine * (object.print_machine.time_cycle or 0.0) * (object.print_machine.time_efficiency or 1.0)),
                         "time_est_hour_nbr":nbr_cycle_print_machine*(object.print_machine.time_cycle/object.print_machine.capacity_per_cycle)+object.print_machine.time_start+object.print_machine.time_stop,
                         "saturation":object.saturation and object.saturation.name_get()[0][1] or 'default',
-                        "qty":object.paper_amount,
+                        "qty":object.paper_amount,# coz in sale.order.bom.line whole amount is calculated
                         "cost_by":'Paper'
                         }
+            if object.print_machine.per_sq_meter:
+                if check123:print_routing_line['qty']=object.width*object.height*saturation*object.product_uom_qty*object.sale_order_line.product_uom_qty/1000000
+                if not check123:print_routing_line['qty']=object.width*object.height*saturation*object.product_uom_qty/1000000
             routing_lines.append([0,0,print_routing_line])
             return routing_lines
         

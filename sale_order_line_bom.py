@@ -76,7 +76,7 @@ class sale_order_line_bom(models.Model):
     paper_product = fields.Many2one('product.product',string=_("Weight and dimensions"))
     warehouse_qty = fields.Float(compute='_get_quantity_available',string = _("Unreserved Quantity in Stock"))
     print_machine = fields.Many2one('mrp.workcenter',String=_("Printing Machine"))
-    product_count = fields.Float(compute='_get_product_count',string = _('Product Count on Chosen Paper'))
+    product_count = fields.Float(compute='_get_product_count',string = _('Component Count on Chosen Paper'))
     saturation = fields.Many2one('color.paper',string=_("Saturation"))
     
     additional_works=fields.One2many('additional.works','sale_order_line_bom',string="Additional Works",copy=True)

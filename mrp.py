@@ -133,7 +133,7 @@ class procurement_order(models.Model):
             print "procurement origin====",procurement.origin
             print "procurement production",procurement.production_id
             if properties==[]:
-                mo=procurement.origin.split(':')[-1]
+                mo=procurement.origin.split(':')[-1] if procurement.origin else ''
                 print "mo===========split",mo
                 domain=[('group_id','=',procurement.group_id.id)]
                 ids_prop=self.search(cr,uid,domain,context=context)
@@ -206,7 +206,7 @@ class mrp_workcenter(models.Model):
     lap_uom=fields.Many2one('product.uom',default=get_mm_id)
     pricing=fields.One2many('cost.workcenter','workcenter_id',string="Costing")
     employees_allowed=fields.Many2many(comodel_name='hr.employee',string='Employees Allowed',help='Employees allowed to operate the workcenter')
-    
+    per_sq_meter=fields.Boolean("Pricing Per Sq. Meter")
             
     
     @api.model
@@ -262,7 +262,7 @@ class cost_workcenter(models.Model):
     def calc_cost(self,cr,uid,workcenter_id,qty,type=None):
         '''type is a string -default ,,, and other-type are ids of saturation
         first check for the id,,, then for default'''
-        if type==None:type='default'
+        if type==None or False:type='default'
         print "type and workcenter_id",type,workcenter_id
         ids=self.search(cr,uid,[('workcenter_id','=',workcenter_id),('type','=',type)])
         print " ids calc cost",ids
@@ -271,15 +271,16 @@ class cost_workcenter(models.Model):
             cr.execute('select quantity from cost_workcenter_array where cost_workcenter = %s',(id,))
             qty_list=list(i[0] for i in cr.fetchall())
             print "qty_list",qty_list
+            sorted_qty_list=[]
             if qty_list:
                 sorted_qty_list=sorted(qty_list)
                 print sorted_qty_list
                 quantity=0.0
                 for i in sorted_qty_list:
-                    if i>=qty:
+                    if i>qty:break
+                    if i<=qty:
                         quantity=i
-                        break
-                if quantity==0.0:quantity=sorted_qty_list[len(sorted_qty_list)-1]
+                if quantity==0.0:quantity=sorted_qty_list[0]
             
             if sorted_qty_list:
                 cr.execute('select cost from cost_workcenter_array where cost_workcenter = %s and quantity = %s',(id,quantity))
@@ -295,7 +296,7 @@ class cost_workcenter_array(models.Model):
     _order='quantity asc'
     
     cost_workcenter=fields.Many2one('cost.workcenter',ondelete='cascade')
-    quantity=fields.Integer('Quantity of paper/product',default=0)
-    cost=fields.Float('Cost per paper/product')
+    quantity=fields.Integer('Quantity of paper/product/sq.meter',default=0,help="Enter 0 for all quantities")
+    cost=fields.Float('Cost per paper/product/sq.meter')
     
     
