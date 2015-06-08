@@ -128,7 +128,7 @@ class sale_order_line(models.Model):
     warehouse_qty = fields.Float(compute='_get_quantity_available',string = _("Unreserved Quantity in Stock"),help="Quantity available in stock - quantity reserved for other operations")
     print_machine = fields.Many2one('mrp.workcenter',String=_("Printing Machine"))
     product_count = fields.Float(compute='_get_product_count',string = _('Product Count on Chosen Paper'))
-    saturation = fields.Many2one('color.paper',string=_("Saturation"))
+    saturation = fields.Many2one('color.paper',string=_("Saturation"),help="Put saturation cost in machine to display other saturation")
     mo_id=fields.Many2one('mrp.production',copy=False)
     additional_works=fields.One2many('additional.works','sale_order_line',string="Additional Works",copy=True)
     bom_line=fields.Many2one('mrp.bom',copy=False)
