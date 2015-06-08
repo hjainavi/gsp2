@@ -23,7 +23,7 @@ class sale_order_line_bom(models.Model):
             height_count=int(effective_paper_height/effective_manufacture_height)
             product_count=width_count*height_count
             self.product_count=product_count
-            self.paper_amount=math.ceil(self.product_uom_qty/product_count)*self.sale_order_line.product_uom_qty
+            self.paper_amount=math.ceil(self.product_uom_qty*self.sale_order_line.product_uom_qty/product_count)
         except:
             self.product_count=0.0
             self.paper_amount=0.0
