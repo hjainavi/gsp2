@@ -770,9 +770,17 @@ class sale_line_delivery_date(models.Model):
             # will be displayed in delivery dates tab
             if obj.bom_line:
                 if obj.is_multi_level:
+                    machine_start_end_multi={}
                     for multi_line in obj.multi_level_bom:
-                        start_dt,machine_start_end=self._get_time_and_machine_times(self,multi_line,line,machine_start_end)
-                start_dt,machine_start_end=self._get_time_and_machine_times(self,obj,line,machine_start_end)
+                        if obj.multi_level_bom.bom_line and obj.multi_level_bom.bom_line.routing_id:
+                            start_dt,res=self._get_time_and_machine_times(multi_line,line,machine_start_end)
+                            for times in res:
+                                machine_start_end[times]=res[times]
+                                machine_start_end_multi[times]=res[times]
+                if obj.bom_line.routing_id:
+                    start_dt,res=self._get_time_and_machine_times(obj,line,machine_start_end)
+                    for times in res:machine_start_end[times]=res[times]
+                else:start_dt=max(machine_start_end_multi[times][1] for times in machine_start_end_multi)
                 line.expected_delivery=start_dt
                 line.sale_line_id.write({'expected_delivery':start_dt})
                 print "-----------------machine_start_end",machine_start_end
