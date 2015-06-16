@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api, _
 import math
+from openerp.exceptions import except_orm
 
 class sale_order_line_bom(models.Model):
     _name='sale.order.line.bom'
@@ -75,7 +76,7 @@ class sale_order_line_bom(models.Model):
     width = fields.Float(string=_('Width'),default = 0)
     paper_product = fields.Many2one('product.product',string=_("Weight and dimensions"))
     warehouse_qty = fields.Float(compute='_get_quantity_available',string = _("Unreserved Quantity in Stock"))
-    print_machine = fields.Many2one('mrp.workcenter',String=_("Printing Machine"))
+    print_machine = fields.Many2one('mrp.workcenter',String=_("Printing Machine"),domain="[('resource_type','=','material'),('max_width','!=',0.0)]")
     product_count = fields.Float(compute='_get_product_count',string = _('Component Count on Chosen Paper'))
     saturation = fields.Many2one('color.paper',string=_("Saturation"))
     

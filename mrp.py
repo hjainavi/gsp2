@@ -198,7 +198,7 @@ class mrp_workcenter(models.Model):
     
     max_height=fields.Float(string=_("Maximum Height"),help='Put 0 if there is no height restriction')
     max_height_uom = fields.Many2one('product.uom',default=get_mm_id)
-    max_width=fields.Float(string=_("Maximum Width"),required=True)
+    max_width=fields.Float(string=_("Maximum Width"))
     max_width_uom = fields.Many2one('product.uom',default=get_mm_id)
     edge_space=fields.Float(string=_('Edge Space'))
     edge_uom=fields.Many2one('product.uom',default=get_mm_id)
@@ -223,6 +223,7 @@ class mrp_workcenter(models.Model):
             records=self.search([])
             for rec in records:
                 #print "===============",rec
+                if rec.max_width == 0.0:continue
                 if rec.max_height!=0 and rec.max_height>=height and rec.max_width>=width:
                     for name_wk in range(len(ids)):
                         if rec.id==ids[name_wk][0]:
@@ -238,11 +239,8 @@ class mrp_workcenter(models.Model):
     @api.constrains('max_width','capacity_per_cycle')
     def force_width(self):
         #print "======================= force_width",self.max_width
-        if self.max_width==0.0:
-            #print "in warning"
-            raise Warning("Please Set A Width For the Workcenter. If not required put any number other than 0")
         if self.capacity_per_cycle==0.0:
-            raise Warning("Please Set a capacity greater than 0")
+            raise except_orm(("Error"),("Please Set a capacity greater than 0"))
     
 class cost_workcenter(models.Model):
     _name='cost.workcenter'
