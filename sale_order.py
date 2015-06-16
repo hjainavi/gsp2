@@ -86,10 +86,10 @@ class sale_order_line(models.Model):
             desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) +  "\n"
             
             for rec in self.multi_level_bom:
-                desc+= str(rec.product_id.name or '') + ' ' + str(rec.width or '') + str(rec.width and ' mm' or '') + ' ' +  str(rec.height or '') + str(rec.height and ' mm ' or '') + str(rec.bom_category_id.name or '') + ' ' + str(rec.paper_product.name or '') + ' ' + str(rec.paper_product.product_weight or '') + str(rec.paper_product.product_weight and rec.paper_product.weight_uom.name or '') + ' ' + str(rec.saturation.display_name or '') + "\n"
+                desc+= (rec.product_id.name or '') + ' ' + str(rec.width or '') + str(rec.width and ' mm' or '') + ' ' +  str(rec.height or '') + str(rec.height and ' mm ' or '') + (rec.bom_category_id.name or '') + ' ' + (rec.paper_product.name or '') + ' ' + str(rec.paper_product.product_weight or '') + (rec.paper_product.product_weight and rec.paper_product.weight_uom.name or '') + ' ' + (rec.saturation.display_name or '') + "\n"
                     
                 for add_work in rec.additional_works:
-                    desc+= str(add_work.sequence or '') + ' ' + str(add_work.service.name or '') + '\n'
+                    desc+= str(add_work.sequence or '') + ' ' + (add_work.service.name or '') + '\n'
         else:
             weight=self.paper_product.product_height * self.paper_product.product_width * self.paper_product.product_weight * self.paper_amount
             for add_work in self.additional_works:
@@ -100,7 +100,7 @@ class sale_order_line(models.Model):
             desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) + "\n"
             desc+= str(self.width or '') + str(self.width and ' mm ' or '') + ' ' + str(self.height or '') + str(self.height and ' mm ' or '') +   (self.category_id.name or '') + ' ' + (self.paper_product.name or '') + ' ' + str(self.paper_product.product_weight or '') + str(self.paper_product.product_weight and self.paper_product.weight_uom.name or '') + ' ' + str(self.saturation.display_name or '') + "\n"
             for add_work in self.additional_works:
-                    desc+= str(add_work.sequence or '') + ' ' + str(add_work.service.name or '') + '\n'
+                    desc+= str(add_work.sequence or '') + ' ' + (add_work.service.name or '') + '\n'
         self.name=desc
     
     @api.onchange('paper_product')
