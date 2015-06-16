@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from openerp.exceptions import except_orm
 
 class additional_works(models.Model):
     _name='additional.works'
@@ -48,33 +48,33 @@ class additional_works(models.Model):
     def _workcenter_constrains(self):
         for check in self:
             if check.service and check.workcenter==False:
-                 raise Warning(("Please Set a workcenter in the service product %s of additional works") % (check.service.name))
-            if check.service and check.service.workcenter_cost_method==False:
-                 raise Warning(("Please Set a Workcenter Cost Method in the service product %s of additional works") % (check.service.name))
+                 raise except_orm(("Error"),("Please Set a workcenter in the service product %s of additional works") % (check.service.name))
+            if check.service and check.service.workcenter.cost_method==False:
+                 raise except_orm(("Error"),("Please Set a Cost Method in the workcenter %s ") % (check.service.workcenter.name))
             print check
-            if check.service and check.service.workcenter_cost_method=='paper' and check.sale_order_line and check.sale_order_line.is_multi_level:
-                 raise Warning(("Please choose a service where Workcenter Cost Method is 'By Product' in additional works (%s)") % (check.service.name))
+            if check.service and check.service.workcenter.cost_method=='paper' and check._name=='sale.order.line' and check.sale_order_line.is_multi_level:
+                 raise except_orm(("Error"),("Please choose a service where Workcenter Cost Method is 'By Product' in additional works (%s)") % (check.service.name))
     
     @api.one
     @api.depends('service')
     def _onchange_service(self):
-        if self.service and not self.service.workcenter and not self.service.workcenter_cost_method:
+        if self.service and not self.service.workcenter and not self.service.workcenter.cost_method:
             self.workcenter=False
             self.costing_service=None
-            raise Warning("Please Set a Workcenter & Workcenter Cost Method in the service product")
+            raise except_orm(("Error"),("Please Set a Workcenter in the service product and Cost method in the Workcenter/Pricing"))
         if self.service and not self.service.workcenter:
             self.workcenter=False
-            raise Warning(("Please Set a workcenter in the service product %s of additional works") % (self.service.name))
-        if self.service and not self.service.workcenter_cost_method:
+            raise except_orm(("Error"),("Please Set a workcenter in the service product %s of additional works") % (self.service.name))
+        if self.service and not self.service.workcenter.cost_method:
             self.costing_service=None
-            raise Warning(("Please Set a Workcenter Cost Method in the service product %s of additional works") % (self.service.name))
-        if self.service and self.service.workcenter_cost_method=='paper' and self.sale_order_line and self.sale_order_line.is_multi_level:
-            raise Warning(("Please choose a service where Workcenter Cost Method is 'By Product' in additional works (%s)") % (self.service.name))
+            raise except_orm(("Error"),("Please Set a Cost Method in the workcenter %s ") % (self.service.workcenter.name))
+        if self.service and self.service.workcenter.cost_method=='paper' and self._name=='sale.order.line' and self.sale_order_line.is_multi_level:
+            raise except_orm(("Error"),("Please choose a service where Workcenter Cost Method is 'By Product' in additional works (%s)") % (self.service.name))
         if self.service and self.service.workcenter:
             self.workcenter=self.service.workcenter.id
-        if self.service and self.service.workcenter_cost_method:
-            dict={'paper':'By Paper','product':'By Product'}
-            self.costing_service=dict.get(self.service.workcenter_cost_method,None)
+        if self.service and self.service.workcenter.cost_method:
+            dict={'paper':'By Paper','product':'By Product','sq_meter':'Per Sq. meter'}
+            self.costing_service=dict.get(self.service.workcenter.cost_method,None)
          
             
     @api.one

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from openerp.exceptions import except_orm
 
 class product_manufacturer(models.Model):
     _name='product.manufacturer'

@@ -17,7 +17,6 @@
 						<field name="weight_uom"  nolabel="1" />
 					</group>
 					<group col="2" string="Service Workcenter" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '!=', 'service')]}">
-						<field name="workcenter_cost_method"/>
 						<field name="workcenter"/>
 					</group>
 				</xpath>
@@ -46,7 +45,6 @@
 					<field name="weight_uom"  nolabel="1" />
 				</group>
 				<group col="2" string="Service Workcenter" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '!=', 'service')]}">
-					<field name="workcenter_cost_method"/>
 					<field name="workcenter"/>
 				</group>
 			</xpath>

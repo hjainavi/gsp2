@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from openerp.exceptions import except_orm
 import time
 import openerp.addons.decimal_precision as dp
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
@@ -206,7 +206,7 @@ class mrp_workcenter(models.Model):
     lap_uom=fields.Many2one('product.uom',default=get_mm_id)
     pricing=fields.One2many('cost.workcenter','workcenter_id',string="Costing")
     employees_allowed=fields.Many2many(comodel_name='hr.employee',string='Employees Allowed',help='Employees allowed to operate the workcenter')
-    per_sq_meter=fields.Boolean("Pricing Per Sq. Meter")
+    cost_method=fields.Selection(selection=[('paper','By Paper'),('product','By Product'),('sq_meter','Per Sq. meter')],string=_('Cost Method'),required=True,default='sq_meter')
             
     
     @api.model

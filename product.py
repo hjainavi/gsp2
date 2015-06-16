@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from openerp.exceptions import except_orm
 
 class product_category(models.Model):
     _inherit = "product.category"
@@ -34,7 +34,6 @@ class product_template(models.Model):
     product_weight = fields.Float(related=('product_variant_ids','product_weight'),string = _('Paper Weight'),default=0)
     weight_uom=fields.Many2one(related=('product_variant_ids','weight_uom'))
     workcenter=fields.Many2one(related=('product_variant_ids','workcenter'),string = _('Service Workcenter'),default=False)
-    workcenter_cost_method=fields.Selection(related=('product_variant_ids','workcenter_cost_method'),string=_('Workcenter Cost Method'))
     manufacturer=fields.One2many(related=('product_variant_ids','manufacturer'),string = _('Manufacturer'))
     
     
@@ -46,7 +45,7 @@ class product_template(models.Model):
         a = self.env["ir.model.data"].get_object_reference("gsp2","product_uom_mm")[1]
         product_template_id=super(product_template,self).create(vals)
         #print "===========here before write of measurements"
-        product_template_id.write({'check':True,'manufacturer':vals.get('manufacturer',False),'workcenter':vals.get('workcenter',False),'workcenter_cost_method':vals.get('workcenter_cost_method',False),'product_width':vals.get('product_width',0),'product_height':vals.get('product_height',0),'product_weight':vals.get('product_weight',0),'width_uom':vals.get('width_uom',a),'height_uom':vals.get('height_uom',a),'weight_uom':vals.get('weight_uom',False)})
+        product_template_id.write({'check':True,'manufacturer':vals.get('manufacturer',False),'workcenter':vals.get('workcenter',False),'product_width':vals.get('product_width',0),'product_height':vals.get('product_height',0),'product_weight':vals.get('product_weight',0),'width_uom':vals.get('width_uom',a),'height_uom':vals.get('height_uom',a),'weight_uom':vals.get('weight_uom',False)})
         return product_template_id
     
     
@@ -75,7 +74,7 @@ class product_product(models.Model):
     weight_uom=fields.Many2one('product.uom')
     workcenter=fields.Many2one('mrp.workcenter',string = _('Service Workcenter'),default=False)
     manufacturer=fields.One2many('product.manufacturer','product_manufacturer',string = _('Manufacturer'))
-    workcenter_cost_method=fields.Selection(selection=[('paper','By Paper'),('product','By Product')],string=_('Workcenter Cost Method'))
+    
     
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
@@ -85,7 +84,7 @@ class product_product(models.Model):
                     list=[]
                     for name_wk in range(len(ids)):
                         product=self.browse(ids[name_wk][0])
-                        if product.workcenter_cost_method!='paper':
+                        if product.workcenter.cost_method!='paper':
                             list.append(ids[name_wk])
                     print "====1",list
                     return list

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from openerp import models, fields, api, _
-from openerp.exceptions import Warning
+from openerp.exceptions import except_orm
 import math
 import openerp.addons.decimal_precision as dp
 from openerp import SUPERUSER_ID
@@ -37,7 +37,7 @@ class sale_order_line(models.Model):
     def _get_product_count(self):
         #print "================in get product count"
         if self.paper_product and (self.paper_product.product_width==0.0 or self.paper_product.product_height==0.0):
-            raise Warning("Please set the measurements in the product inventory page of product %s"%(self.paper_product.name_template))
+            raise except_orm(("Error"),("Please set the measurements in the product inventory page of product %s")%(self.paper_product.name_template))
         try:
             effective_paper_width=self.paper_product.product_width - (self.print_machine.edge_space*2) + self.print_machine.lap_bw_products
             effective_paper_height=self.paper_product.product_height - (self.print_machine.edge_space*2) + self.print_machine.lap_bw_products
@@ -80,8 +80,8 @@ class sale_order_line(models.Model):
                 weight=rec.paper_product.product_height * rec.paper_product.product_width * rec.paper_product.product_weight * rec.paper_amount
                 for add_work in rec.additional_works:
                     amount=0.0
-                    if add_work.service.workcenter_cost_method=='paper':amount=rec.paper_amount*add_work.qty
-                    if add_work.service.workcenter_cost_method=='product':amount=rec.product_uom_qty*add_work.qty*self.product_uom_qty
+                    if add_work.service.workcenter.cost_method=='paper':amount=rec.paper_amount*add_work.qty
+                    if add_work.service.workcenter.cost_method=='product':amount=rec.product_uom_qty*add_work.qty*self.product_uom_qty
                     weight+=add_work.product.weight_net*amount
             desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) +  "\n"
             
@@ -94,8 +94,8 @@ class sale_order_line(models.Model):
             weight=self.paper_product.product_height * self.paper_product.product_width * self.paper_product.product_weight * self.paper_amount
             for add_work in self.additional_works:
                 amount=0.0
-                if add_work.service.workcenter_cost_method=='paper':amount=self.paper_amount*add_work.qty
-                if add_work.service.workcenter_cost_method=='product':amount=self.product_uom_qty*add_work.qty
+                if add_work.service.workcenter.cost_method=='paper':amount=self.paper_amount*add_work.qty
+                if add_work.service.workcenter.cost_method=='product':amount=self.product_uom_qty*add_work.qty
                 weight+=add_work.product.weight_net*amount
             desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) + "\n"
             desc+= str(self.width or '') + str(self.width and ' mm ' or '') + ' ' + str(self.height or '') + str(self.height and ' mm ' or '') +   (self.category_id.name or '') + ' ' + (self.paper_product.name or '') + ' ' + str(self.paper_product.product_weight or '') + str(self.paper_product.product_weight and self.paper_product.weight_uom.name or '') + ' ' + str(self.saturation.display_name or '') + "\n"
@@ -141,7 +141,7 @@ class sale_order_line(models.Model):
     @api.constrains('manufacture_size','width','height','is_multi_level','product_count','paper_product','print_machine')
     def check_for_product_count(self):
         if self.is_multi_level==False and self.manufacture_size!=False and self.product_count == 0.0 :
-            raise Warning(('Product count cannot be zero .  Please revise the data entered in product-line "%s" ') % (self.product_id.name))
+            raise except_orm(("Error"),('Product count cannot be zero .  Please revise the data entered in product-line "%s" ') % (self.product_id.name))
     
         
     @api.one
@@ -616,10 +616,10 @@ class sale_order(models.Model):
                 if not rec.product:continue
                 if check123:
                     cost_cycle=object.product_uom_qty*object.sale_order_line.product_uom_qty
-                    if rec.service and rec.service.workcenter_cost_method=='paper':cost_cycle=paper_amount
+                    if rec.service and rec.service.workcenter.cost_method=='paper':cost_cycle=paper_amount
                 else:
                     cost_cycle=object.product_uom_qty
-                    if rec.service and rec.service.workcenter_cost_method=='paper':cost_cycle=paper_amount
+                    if rec.service and rec.service.workcenter.cost_method=='paper':cost_cycle=paper_amount
                 bom_lines1={"product_id":rec.product.id,
                            "type":'normal',
                            "product_qty":rec.qty*cost_cycle,
@@ -679,7 +679,7 @@ class sale_order(models.Model):
                         "qty":object.paper_amount,# coz in sale.order.bom.line whole amount is calculated
                         "cost_by":'Paper'
                         }
-            if object.print_machine.per_sq_meter:
+            if object.print_machine.cost_method == 'sq_meter':
                 if check123:print_routing_line['qty']=object.width*object.height*saturation*object.product_uom_qty*object.sale_order_line.product_uom_qty/1000000
                 if not check123:print_routing_line['qty']=object.width*object.height*saturation*object.product_uom_qty/1000000
             routing_lines.append([0,0,print_routing_line])
@@ -693,7 +693,7 @@ class sale_order(models.Model):
             for rec in object.additional_works:
                 if not rec.service:continue
                 if check123:
-                    if paper_amount!=0.0 and rec.service.workcenter_cost_method=='paper':
+                    if paper_amount!=0.0 and rec.service.workcenter.cost_method=='paper':
                         cost_cycle=paper_amount
                         cost_by='Paper'
                     else:
@@ -702,7 +702,7 @@ class sale_order(models.Model):
                 else:
                     cost_cycle=object.product_uom_qty
                     cost_by="Product"
-                    if not object.is_multi_level and paper_amount!=0.0 and rec.service.workcenter_cost_method=='paper':
+                    if not object.is_multi_level and paper_amount!=0.0 and rec.service.workcenter.cost_method=='paper':
                         cost_cycle=paper_amount
                         cost_by="Paper"
                 cycle_nbr=math.ceil(cost_cycle/rec.workcenter.capacity_per_cycle)

@@ -21,7 +21,7 @@
 				<xpath expr= "//notebook" position="inside">
 					<page string="Pricing">
 						<group>
-							<field name="per_sq_meter"/>
+							<field name="cost_method"/>
 							<field name='pricing'/>
 						</group>
 					</page>
@@ -31,6 +31,7 @@
 						</group>
 					</page>
 				</xpath>
+                <xpath expr= "/form//group[@string='Costing Information']" position="replace" />
 			</field>
 		</record>
 		
