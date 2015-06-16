@@ -138,6 +138,20 @@ class sale_order_line(models.Model):
     delivery_datetime=fields.Datetime('Deadline')
     expected_delivery=fields.Datetime(string='Expected Delivery Date')
     
+    @api.constrains('saturation')
+    def check_for_saturation_constrains(self):
+        list_a=[]
+        check="False"
+        if self.print_machine and self.saturation:
+            check=self.saturation.name_get()[0][1]
+            for i in self.print_machine.pricing:
+                list_a.append(i.type) 
+                print "----i",i.type,type(i.type)
+            print "---list----",list_a,self.saturation.name_get()
+        if check not in list_a:
+            raise except_orm(("Error"),("The saturation selected in line -- '%s' does not have a price set in workcenter") % (self.product_id.name))
+
+        
     @api.constrains('manufacture_size','width','height','is_multi_level','product_count','paper_product','print_machine')
     def check_for_product_count(self):
         if self.is_multi_level==False and self.manufacture_size!=False and self.product_count == 0.0 :

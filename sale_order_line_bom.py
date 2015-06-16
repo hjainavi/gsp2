@@ -84,7 +84,20 @@ class sale_order_line_bom(models.Model):
     bom_line=fields.Many2one('mrp.bom',copy=False)
     paper_amount=fields.Float(compute='_get_product_count',string ='Total Paper Amount to be used')
     
+    @api.constrains('saturation')
+    def check_for_saturation_constrains(self):
+        list_a=[]
+        check="False"
+        if self.print_machine and self.saturation:
+            check=self.saturation.name_get()[0][1]
+            for i in self.print_machine.pricing:
+                list_a.append(i.type) 
+                print "----i",i.type,type(i.type)
+            print "---list----",list_a,self.saturation.name_get()
+        if check not in list_a:
+            raise except_orm(("Error"),("The saturation selected in line -- '%s' of line '%s' does not have a price set in workcenter") % (self.product_id.name,self.sale_order_line.product_id.name))
+        
     @api.constrains('manufacture_size','product_count','product_uom_qty')
     def check_for_product_count(self):
         if self.product_uom_qty==0:
-            raise Warning(('Product quantity cannot be zero .  Please revise the data entered in product-line "%s" and component "%s"') % (self.sale_order_line.product_id.name,self.product_id.name))
+            raise except_orm(("Error"),('Product quantity cannot be zero .  Please revise the data entered in product-line "%s" and component "%s"') % (self.sale_order_line.product_id.name,self.product_id.name))
