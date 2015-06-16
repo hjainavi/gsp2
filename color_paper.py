@@ -15,7 +15,7 @@ class color_paper(models.Model):
             result.append((rec.id,"%s+%s"%(rec.side_1,rec.side_2)))
         return result
 
-    @api.model
+    '''@api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
         ids=super(color_paper,self).name_search(name=name,args=args,operator='ilike',limit=100)
         print "in name_search of color.paper returnig ids ",ids
@@ -33,5 +33,5 @@ class color_paper(models.Model):
         except:
             raise
             print "error in name_search of product.product"
-        return ids
+        return ids'''
     
