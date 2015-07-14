@@ -31,6 +31,7 @@ class mrp_production_workcenter_line(models.Model):
     @api.one
     @api.depends('state')
     def _get_employee_cost(self):
+        
         print "------self",self
         if self.sudo().state=='done':
             self.employee_cost=0.0
@@ -42,8 +43,8 @@ class mrp_production_workcenter_line(models.Model):
                 for contract in self.sudo().hr_wc_ids.contract_ids:
                     if self.date_start>=contract.date_start and self.date_finished<=contract.date_end:
                         per_hour_cost=contract.wage/(schedule_pay.get(contract.schedule_pay,30*24)*24)
-                        print "===================per_hour_cost*self.delay",per_hour_cost,self.sudo().delay,per_hour_cost*self.sudo().delay
-                        self.employee_cost=per_hour_cost*self.sudo().delay
+                        print "===================per_hour_cost*self.delay",per_hour_cost,self.sudo().delay_actual,per_hour_cost*self.sudo().delay_actual
+                        self.employee_cost=per_hour_cost*self.sudo().delay_actual
     
 
 class mrp_bom(models.Model):
