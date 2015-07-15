@@ -45,6 +45,7 @@
             		<field name ="hr_wc_ids" context="{'wc_id':workcenter_id}" options="{'create': false, 'create_edit': false}"/>
             	</xpath>
             	<xpath expr="//field[@name='delay']" position='after'>
+            		<field name='delay_actual' widget="float_time"/>
             		<field name='employee_cost'/>
             	</xpath>
 			</field>
