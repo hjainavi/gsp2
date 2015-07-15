@@ -23,10 +23,40 @@ class mrp_production(models.Model):
     
 class mrp_production_workcenter_line(models.Model):
     _inherit='mrp.production.workcenter.line'
-    delivery_datetime=fields.Datetime(related='production_id.delivery_datetime',string='Deadline')
+    delivery_datetime=fields.Datetime(related='production_id.delivery_datetime',string='Project Deadline')
     hr_wc_ids=fields.Many2one(comodel_name='hr.employee',string='Employees Allowed', readonly=True, states={'draft': [('readonly', False)]},help='Employees allowed to operate the workcenter')
+    delay_actual=fields.Float(compute='_get_delay_actual',string="Actual working hours")
     employee_cost=fields.Float(compute='_get_employee_cost',string='Employee Cost')
     hr_wc_uid=fields.Many2one(related='hr_wc_ids.user_id',comodel_name='res.users',store=True)
+    last_started_date=fields.Datetime()
+    hours_worked=fields.Float(default=0.0,digits=(5,2))
+    
+    @api.one
+    @api.model
+    def write(self,vals):
+        print "---- in get delay actual in mrp.py in gsp2--00000000000000--"
+        if vals.get('state',False)=='startworking': 
+            print "---- in get delay actual in mrp.py in gsp2--1111--"
+            vals['last_started_date']=fields.Datetime.now()
+            
+        if vals.get('state',False) in ['pause','done'] and self.last_started_date:
+            print "---- in get delay actual in mrp.py in gsp2--2222--"
+            vals['hours_worked']=self.hours_worked + (datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S')-(datetime.strptime(self.last_started_date,'%Y-%m-%d %H:%M:%S'))).total_seconds()/3600.0
+            
+        if vals.get('state',False)=='done' and not self.last_started_date:
+            print "---- in get delay actual in mrp.py in gsp2--4444--"
+            vals['hours_worked']=(datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S')-(datetime.strptime(self.last_started_date,'%Y-%m-%d %H:%M:%S'))).total_seconds()/3600.0
+        
+        return super(mrp_production_workcenter_line, self).write(vals)
+    
+    @api.one
+    @api.depends()
+    def _get_delay_actual(self):
+        print "---- in get delay actual in mrp.py in gsp2---5555- self.sudo().last_started_date",self.sudo().last_started_date
+        if self.sudo().state=='startworking' and self.sudo().last_started_date: 
+            self.delay_actual=self.sudo().hours_worked + (datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S')-(datetime.strptime(self.sudo().last_started_date,'%Y-%m-%d %H:%M:%S'))).total_seconds()/3600.0
+        else:
+            self.delay_actual=self.sudo().hours_worked
     
     @api.one
     @api.depends('state')
