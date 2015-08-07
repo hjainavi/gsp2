@@ -155,7 +155,8 @@ class resource_calendar(osv.osv):
                               }
                     local_attendance.append([0,0,dict_att])
             #print "-------------local_attendance",local_attendance
-        return time_diff_float,local_attendance
+            return time_diff_float,local_attendance
+        return 0.0,[]
     
     
     def _get_time_diff_float(self, cr, uid,timezone):
