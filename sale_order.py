@@ -148,8 +148,8 @@ class sale_order_line(models.Model):
                 list_a.append(i.type) 
                 print "----i",i.type,type(i.type)
             print "---list----",list_a,self.saturation.name_get()
-        if check not in list_a:
-            raise except_orm(("Error"),("The saturation selected in line -- '%s' does not have a price set in workcenter") % (self.product_id.name))
+            if check not in list_a:
+                raise except_orm(("Error"),("The saturation selected in line -- '%s' does not have a price set in workcenter") % (self.product_id.name))
 
         
     @api.constrains('manufacture_size','width','height','is_multi_level','product_count','paper_product','print_machine')
