@@ -21,9 +21,13 @@
 					</group>
 				</xpath>
 				<xpath expr="//group[@string='Supply Chain Information']" position='after'>
-					<group string="Manufacturers" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '=', 'service')]}">
+					<group string="Manufacturers" attrs="{'invisible': [('type', '=', 'service')]}">
 						<div>
-						<field name='manufacturer'/>
+						<field name='manufacturer'>
+						    <tree>
+						        <field name="name"/>
+						    </tree>
+						</field>
 						</div>
 					</group>
 				</xpath>
@@ -44,17 +48,22 @@
 					<field name = "product_weight" />
 					<field name="weight_uom"  nolabel="1" />
 				</group>
-				<group col="2" string="Service Workcenter" attrs="{'invisible': ['|',('product_variant_count', '>', 1),('type', '!=', 'service')]}">
+				<group col="2" string="Service Workcenter" attrs="{'invisible': [('type', '!=', 'service')]}">
 					<field name="workcenter"/>
 				</group>
 			</xpath>
 			<xpath expr="//group[@string='Supply Chain Information']" position='after'>
 					<group string="Manufacturers" attrs="{'invisible': [('type', '=', 'service')]}">
 						<div>
-						<field name='manufacturer'/>
+						<field name='manufacturer'>
+						    <tree>
+						        <field name="name"/>
+						    </tree>
+						</field>
 						</div>
 					</group>
-			</xpath>
+				</xpath>
+			
 			</field>
 		</record>
 		

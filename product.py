@@ -34,7 +34,7 @@ class product_template(models.Model):
     product_weight = fields.Float(related=('product_variant_ids','product_weight'),string = _('Paper Weight'),default=0)
     weight_uom=fields.Many2one(related=('product_variant_ids','weight_uom'))
     workcenter=fields.Many2one(related=('product_variant_ids','workcenter'),string = _('Service Workcenter'),default=False)
-    manufacturer=fields.One2many(related=('product_variant_ids','manufacturer'),string = _('Manufacturer'))
+    manufacturer=fields.Many2many('res.partner',string = _('Manufacturer'))
     
     
     # writing fields that have to be carried over to product.product and 
@@ -73,7 +73,7 @@ class product_product(models.Model):
     product_weight = fields.Float(string = _('Paper Weight'),default=0)
     weight_uom=fields.Many2one('product.uom')
     workcenter=fields.Many2one('mrp.workcenter',string = _('Service Workcenter'),default=False)
-    manufacturer=fields.One2many('product.manufacturer','product_manufacturer',string = _('Manufacturer'))
+    
     
     
     @api.model
