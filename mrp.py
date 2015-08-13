@@ -21,62 +21,6 @@ class mrp_production(models.Model):
     
         
     
-class mrp_production_workcenter_line(models.Model):
-    _inherit='mrp.production.workcenter.line'
-    delivery_datetime=fields.Datetime(related='production_id.delivery_datetime',string='Project Deadline')
-    hr_wc_ids=fields.Many2one(comodel_name='hr.employee',string='Employees Allowed', readonly=True, states={'draft': [('readonly', False)]},help='Employees allowed to operate the workcenter')
-    delay_actual=fields.Float(compute='_get_delay_actual',string="Actual working hours")
-    employee_cost=fields.Float(compute='_get_employee_cost',string='Employee Cost')
-    hr_wc_uid=fields.Many2one(related='hr_wc_ids.user_id',comodel_name='res.users',store=True)
-    last_started_date=fields.Datetime()
-    hours_worked=fields.Float(default=0.0,digits=(5,2))
-    
-    @api.one
-    @api.model
-    def write(self,vals):
-        print "---- in get delay actual in mrp.py in gsp2--00000000000000--"
-        if vals.get('state',False)=='startworking': 
-            print "---- in get delay actual in mrp.py in gsp2--1111--"
-            vals['last_started_date']=fields.Datetime.now()
-            
-        if vals.get('state',False) in ['pause','done'] and self.last_started_date:
-            print "---- in get delay actual in mrp.py in gsp2--2222--"
-            vals['hours_worked']=self.hours_worked + (datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S')-(datetime.strptime(self.last_started_date,'%Y-%m-%d %H:%M:%S'))).total_seconds()/3600.0
-            
-        if vals.get('state',False)=='done' and not self.last_started_date:
-            print "---- in get delay actual in mrp.py in gsp2--4444--"
-            vals['hours_worked']=(datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S')-(datetime.strptime(self.last_started_date,'%Y-%m-%d %H:%M:%S'))).total_seconds()/3600.0
-        
-        return super(mrp_production_workcenter_line, self).write(vals)
-    
-    @api.one
-    @api.depends()
-    def _get_delay_actual(self):
-        print "---- in get delay actual in mrp.py in gsp2---5555- self.sudo().last_started_date",self.sudo().last_started_date
-        if self.sudo().state=='startworking' and self.sudo().last_started_date: 
-            self.delay_actual=self.sudo().hours_worked + (datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S')-(datetime.strptime(self.sudo().last_started_date,'%Y-%m-%d %H:%M:%S'))).total_seconds()/3600.0
-        else:
-            self.delay_actual=self.sudo().hours_worked
-    
-    @api.one
-    @api.depends('state')
-    def _get_employee_cost(self):
-        
-        print "------self",self
-        if self.sudo().state=='done':
-            self.employee_cost=0.0
-            '''get employee working costs on workcenter '''
-            schedule_pay={'monthly':30,'quarterly':91,'semi-annually':183,'annually':365,'weekly':7,'bi-weekly':3.5,'bi-monthly':15}
-            print "self.hr_wc_ids------------------",self.sudo().hr_wc_ids
-            print "self.hr_wc_ids.contract_ids------",self.sudo().hr_wc_ids.contract_ids
-            if self.sudo().hr_wc_ids and self.sudo().hr_wc_ids.contract_ids:
-                for contract in self.sudo().hr_wc_ids.contract_ids:
-                    if self.date_start>=contract.date_start and self.date_finished<=contract.date_end:
-                        per_hour_cost=contract.wage/(schedule_pay.get(contract.schedule_pay,30*24)*24)
-                        print "===================per_hour_cost*self.delay",per_hour_cost,self.sudo().delay_actual,per_hour_cost*self.sudo().delay_actual
-                        self.employee_cost=per_hour_cost*self.sudo().delay_actual
-    
-
 class mrp_bom(models.Model):
     _inherit='mrp.bom'
     mo_start_date=fields.Datetime("Starting date of MO")
