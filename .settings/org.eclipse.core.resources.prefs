@@ -2,6 +2,7 @@ eclipse.preferences.version=1
 encoding/__openerp__.py=utf-8
 encoding/mrp.py=utf-8
 encoding/product.py=utf-8
+encoding/product_manufacturer.py=utf-8
 encoding/resource.py=utf-8
 encoding/sale_order.py=utf-8
 encoding/sale_order_line_bom.py=utf-8
