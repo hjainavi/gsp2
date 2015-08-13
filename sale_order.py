@@ -143,8 +143,9 @@ class sale_order_line(models.Model):
     @api.depends('mo_id.state')
     def check_final_cost(self):
         '''changing uid to SUPERUSER_ID'''
+        print "in check_final_cost=-=-=-=-=-=-=-=-=-=-=-=-=-"
         self.final_cost=0.0
-        if self.sudo().mo_id.state=='done':
+        if self.sudo().mo_id and self.sudo().mo_id.state=='done':
             print "in check_final_cost=-=-=-=-=-=-=-=-=-=-=-=-=-"
             total_cost=0.0
             sale_env=self.env['sale.order']
@@ -340,8 +341,8 @@ class sale_order(models.Model):
     mo_count=fields.Integer(compute='_count_all')
     picking_count=fields.Char(compute='_count_all')
     edited_by_bom_button=fields.Boolean()
-    sale_sale_line_cost=fields.One2many('sale.order.line.cost','sale_sale_line_cost',string='Sale Line Cost',readonly=True,copy=False)
-    sale_delivery_date=fields.One2many('sale.line.delivery.date','sale_delivery_date_rel',String="Expected Delivery Date")
+    sale_sale_line_cost=fields.One2many('sale.order.line.cost','sale_sale_line_cost',string='Sale Line Cost (Manufactured Product)',readonly=True,copy=False)
+    sale_delivery_date=fields.One2many('sale.line.delivery.date','sale_delivery_date_rel',string="Expected Delivery Date (Manufactured Product)")
     
     
     def get_sale_lines_time(self,cr,uid,sale_obj):
@@ -521,15 +522,19 @@ class sale_order(models.Model):
                 res=self.estimate_main_product_cost(cr,uid,line)
                 estimate_unit_cost=res[0]
                 all_sale_lines.append(res[1])
-                self.pool.get('sale.order.line').write(cr,uid,line.id,{'estimate_unit_cost':estimate_unit_cost})
+                self.pool.get('sale.order.line').write(cr,uid,line.id,{'estimate_unit_cost':estimate_unit_cost,'final_cost':0.0})
+                
+            else:
+                estimate_unit_cost=line.product_id.standard_price
+                self.pool.get('sale.order.line').write(cr,uid,line.id,{'estimate_unit_cost':estimate_unit_cost,'final_cost':estimate_unit_cost})
         
         for line in sale_obj.sale_sale_line_cost:
             del_lines.append([2,line.id])
         
         if del_lines:self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_sale_line_cost':del_lines})
-        self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_sale_line_cost':all_sale_lines})
+        if all_sale_lines:self.pool.get('sale.order').write(cr,uid,sale_obj.id,{'sale_sale_line_cost':all_sale_lines})
     
-    
+
     def component_cost(self,cr,uid,bom_obj):
         res=bom_obj.routing_id and self.estimate_routing_cost(cr,uid,bom_obj.routing_id) or [0,[]]
         routing_cost=res[0]
@@ -739,6 +744,7 @@ class sale_order(models.Model):
             routing_id=routing_obj.create(cr,uid,vals_routing,context)
             return routing_id
         return False        
+    
     
 class sale_line_delivery_date(models.Model):
     _name="sale.line.delivery.date"
