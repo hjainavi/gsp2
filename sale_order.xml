@@ -178,6 +178,7 @@
 				</xpath>
 				<xpath expr='/form/sheet/notebook/page[@string="Costing"]' position='after'>
 					<page string="Delivery Dates">
+					    <h3><label for='sale_delivery_date'/></h3>
 						<field name="sale_delivery_date" readonly="1">
 							<tree string="Delivery date">
 								<field name="product_id"/>

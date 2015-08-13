@@ -71,7 +71,7 @@ class sale_order_line_bom(models.Model):
                                          (7,'A7 - size 74x105 mm'),(8,'A8 - size 52x74 mm'),(9,'Padidintas SRA3 - size 320x488 mm'),
                                          (10,'Plastikinė kortelė - size 85x54 mm'),(11,'SRA3 - size 320x450 mm'),
                                          (12,'SRA4 - size 225x320 mm'),(13,'Vizitine 90x50 - 90x50 mm'),(15,'Custom Size')
-                                         ],default=False)
+                                         ],default=False,required=True)
     height = fields.Float(string=_('Height'),default = 0)
     width = fields.Float(string=_('Width'),default = 0)
     paper_product = fields.Many2one('product.product',string=_("Weight and dimensions"))
