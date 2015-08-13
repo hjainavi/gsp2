@@ -29,7 +29,7 @@
     'website': '',
     'images' : [],
     'data': ['product_uom_mm.xml','multi_level_bom.xml','color_paper.xml','bom_property.xml','resource_view.xml','sale_order.xml','mrp_view.xml','product_view.xml','views/sale_line_form.xml','product_category.xml','product_manufacturer_view.xml','mrp_operations_workflow.xml','security/ir.model.access.csv','security/mrp_security.xml'], 
-    'depends' : ['base','product','sale','mrp','sale_mrp','mrp_operations','procurement','resource','hr','gsp_workorder','web_m2x_options'],
+    'depends' : ['base','product','sale','mrp','sale_mrp','purchase','mrp_operations','procurement','resource','hr','web_m2x_options'],
     'demo': [],
     'test': [],
     'installable': True,
