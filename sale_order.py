@@ -972,7 +972,7 @@ class sale_line_delivery_date(models.Model):
             for op in ops:
                 value=op.hour-op.delay_actual
                 delay += value if value > 0 else 0
-            print "========delay in delay _get_sorted_planned_intervals",delay,op.name,op.workcenter_id.name,op.hour,op.delay_actual
+                print "========delay in delay _get_sorted_planned_intervals",delay,op.name,op.workcenter_id.name,op.hour,op.delay_actual
             return intervals,delay
         return intervals
         
