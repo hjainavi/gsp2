@@ -260,7 +260,6 @@ class sale_order(models.Model):
         result['domain'] = "[('id','in',[" + ','.join(map(str,ids)) + "])]"
         return result
         
-            
     def do_view_mo(self, cr, uid, ids, context=None):
         if not context:context={}
         '''
@@ -757,38 +756,45 @@ class sale_line_delivery_date(models.Model):
     
     @api.depends()
     def get_expected_delivery_date(self):
-        self.sudo()
+        print "==============self==-=-=-=-111",self._uid
         print "-------------in def get_expected_delivery_date(self)",self
         machine_start_end={}
         for line in self:
             print "\n \n \n \n \n \n \n \n \n \n \n \n----------sale line id",line.sale_line_id
             #line.expected_delivery=fields.Datetime.now()
-            obj=line.sale_line_id
+            start_dt=False
+            obj=line.sudo().sale_line_id
             if obj.order_id.date_confirm:
                 line.expected_delivery=obj.expected_delivery
                 continue
             # if the sale order gets confirmed then the delivery date will not change and the value from sale line
             # will be displayed in delivery dates tab
             if obj.bom_line:
+                machine_start_end_multi={}
                 if obj.is_multi_level:
-                    machine_start_end_multi={}
                     for multi_line in obj.multi_level_bom:
-                        if obj.multi_level_bom.bom_line and obj.multi_level_bom.bom_line.routing_id:
-                            start_dt,res=self._get_time_and_machine_times(multi_line,line,machine_start_end)
+                        if multi_line.bom_line and multi_line.bom_line.routing_id:
+                            start_dt,res=self.sudo()._get_time_and_machine_times(multi_line,machine_start_end)
                             for times in res:
                                 machine_start_end[times]=res[times]
                                 machine_start_end_multi[times]=res[times]
                 if obj.bom_line.routing_id:
-                    start_dt,res=self._get_time_and_machine_times(obj,line,machine_start_end)
+                    start_dt,res=self.sudo()._get_time_and_machine_times(obj,machine_start_end)
                     for times in res:machine_start_end[times]=res[times]
-                else:start_dt=max(machine_start_end_multi[times][1] for times in machine_start_end_multi)
-                line.expected_delivery=start_dt
-                line.sale_line_id.write({'expected_delivery':start_dt})
-                print "-----------------machine_start_end",machine_start_end
+                else:
+                    start_dt=max(machine_start_end_multi[times][1] for times in machine_start_end_multi) if machine_start_end_multi else False
+                    # machine_start_end_multi are the starting and end times for this multi level lines only and a single sale line
+                    # machine_start_end are the starting and end times of machines for the whole sale order
+                if start_dt:
+                    line.expected_delivery=start_dt
+                    line.sudo().sale_line_id.write({'expected_delivery':start_dt})
+                    print "-----------------expected_delivery",start_dt
+                    print "-----------------machine_start_end",machine_start_end
     
-    def _get_time_and_machine_times(self,obj,line,machine_start_end):
+    def _get_time_and_machine_times(self,obj,machine_start_end):
+        print "==============self==-=-=-=-333",self._uid
         data=[]
-        start_dt=datetime.strptime(line.sale_line_id.order_id.date_confirm or fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
+        start_dt=datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
         #print "======type(start_dt)",start_dt
         #print "======type(end_dt)",type(end_dt)
         for wc_line in obj.bom_line.routing_id.workcenter_lines:
@@ -814,7 +820,9 @@ class sale_line_delivery_date(models.Model):
         print "\n \n \n \n--------------start_dt",start_dt
         if not machine_start_end.get(line[1].id,False):
             now_dt=datetime.strptime(fields.Datetime.now(),'%Y-%m-%d %H:%M:%S').replace(second=0)
-            past_intervals=self._get_sorted_planned_intervals(cr, uid, now_dt)
+            res=self._get_sorted_planned_intervals(cr, uid,line,now_dt)
+            past_intervals=res[0]
+            delay += res[1]
             
             for i in past_intervals:
                 if i[0] < now_dt: 
@@ -841,7 +849,7 @@ class sale_line_delivery_date(models.Model):
         ### for the workcenter hours is max(delay_endtime,start_dt,machine_start_end[line[1].id][1])
         print "=========planning_time=",planning_time
         print "=========start_dt======",start_dt
-        planned_intervals=self._get_sorted_planned_intervals(cr, uid, planning_time,planning_time.replace(hour=23,minute=59,second=59))
+        planned_intervals=self._get_sorted_planned_intervals(cr, uid,line,planning_time,planning_time.replace(hour=23,minute=59,second=59))
         print "\n \n \n \n \n \n \n \n \n \n \n \n --------------line_end_time" 
         line_end_time=self._hour_end_time(cr, uid, planning_time, line, planned_intervals, line[2])
         print "===========line_end_time",line_end_time
@@ -850,14 +858,16 @@ class sale_line_delivery_date(models.Model):
     
     def _hour_end_time(self, cr,uid,start_dt,line,planned_intervals,delay):
         '''
-        start_dt === dateteime from whwre scceduling will start
+        start_dt === datetime from where scheduling will start
         line ==== line.sequence,line.workcenter_id,line.time_est_hour_nbr))
         planned_intervals =========  intervals of workorders scheduled after start_dt till start_dt(23:59:59)
         delay ============ hours to fit in empty intervals
         returns end_datetime after fitting the delay in empty intervals
                 '''
         delay_endtime=False
-        while (delay>0):
+        count_for_infinite_loop=0
+        while (delay>0 and count_for_infinite_loop<50000):
+            count_for_infinite_loop += 1
             print "=====================delay",delay
             print "===============start_dt",start_dt
             print "========planned_intervals",planned_intervals
@@ -884,21 +894,21 @@ class sale_line_delivery_date(models.Model):
                         remaining_intervals += self.pool.get('resource.calendar').interval_remove_leaves(i,intervals_to_remove)
                 # additional delay to schedule for overlapping planned intervals
                     for j in remaining_intervals:
-                        print "===============i===",i
+                        print "===============j===",j
                         remaining_hours += (j[1]-j[0]).total_seconds()/3600.0
                     delay += (remaining_hours+hours_to_remove-hours_in_day) if (remaining_hours+hours_to_remove-hours_in_day)>0 else 0.0
-                    #print "=========remaining_intervals",remaining_intervals
-                    #print "=========remaining_hours",remaining_hours
-                    #print "=========delay",delay
+                    print "=========remaining_intervals",remaining_intervals
+                    print "=========remaining_hours",remaining_hours
+                    print "=========delay",delay
                     interval_schedule_hours=self.pool.get('resource.calendar').interval_schedule_hours(remaining_intervals,delay)
-                    #print "==============intervals_schedule_hours",interval_schedule_hours
+                    print "==============intervals_schedule_hours",interval_schedule_hours
                     if interval_schedule_hours==remaining_intervals:
                         delay -= remaining_hours
                         if delay==0.0:delay_endtime=interval_schedule_hours[-1][-1]
                     else:
                         delay_endtime=interval_schedule_hours[-1][-1] 
                         break
-                    #print "=========delay",delay
+                    print "=========delay",delay
                 else:
                     interval_schedule_hours=self.pool.get('resource.calendar').interval_schedule_hours(working_interval_today,delay)
                     print "===============working_interval_today in else",working_interval_today
@@ -913,8 +923,8 @@ class sale_line_delivery_date(models.Model):
                     
             start_dt=start_dt.replace(hour=0,minute=0,second=0)+timedelta(days=1)
             end_dt=start_dt.replace(hour=23,minute=59,second=59)
-            planned_intervals += self._get_sorted_planned_intervals(cr, uid, start_dt,end_dt)
-            #print "========planned_intervals",planned_intervals
+            planned_intervals += self._get_sorted_planned_intervals(cr, uid,line,start_dt,end_dt)
+            print "========planned_intervals",planned_intervals
         print "================delay_end_time",delay_endtime
         return delay_endtime
     
@@ -922,36 +932,50 @@ class sale_line_delivery_date(models.Model):
     
     def _get_working_interval_and_hours_in_day(self,cr,uid,start_dt,line):
         hours_in_day=0.0
-        #print "----------line=",line
-        working_interval_today=self.pool.get('resource.calendar').get_working_intervals_of_day(cr,uid,id=line[1].calendar_id.id,start_dt=start_dt,end_dt=None,leaves=None,compute_leaves=True,resource_id=line[1].resource_id.id,default_interval=(8, 16))
+        print "----------line=",start_dt
+        working_interval_today=self.pool.get('resource.calendar').get_working_intervals_of_day(cr,uid,id=line[1].calendar_id.id or None,start_dt=start_dt,end_dt=None,leaves=None,compute_leaves=True,resource_id=line[1].resource_id.id,default_interval=(8, 16))
         for i in working_interval_today:
             time_in_day=i[1]-i[0]
             hours_in_day+=time_in_day.total_seconds()/3600.0
         print "-----------working_interval_today,hours_in_day",working_interval_today,hours_in_day
         return working_interval_today,hours_in_day
         
-    def _get_sorted_planned_intervals(self,cr,uid,start_dt,end_dt=None):
+    def _get_sorted_planned_intervals(self,cr,uid,line,start_dt,end_dt=None):
         """if no end_dt is given then this func returns all the workorder intervals 
-        whose date_planned < start_dt.replace(hour=23,minute=59,second=59)
+        whose date_planned < start_dt.replace(hour=23,minute=59,second=59)  for the particular machine
             else if end_dt is mentioned then this returns all the intervals of workorder whose date_planned is between
-            start_dt and end_dt
+            start_dt and end_dt  for the particular machine
         """
         intervals=[]
+        delay=0.0
         if end_dt:
-            cr.execute("select id from mrp_production_workcenter_line where date_planned < %s and date_planned > %s and state in ('draft','pause')", (end_dt,start_dt))
+            cr.execute("select id from mrp_production_workcenter_line where date_planned <= %s and date_planned >= %s and state in ('draft') and workcenter_id = %s", (end_dt,start_dt,line[1].id))
         else:
-            cr.execute("select id from mrp_production_workcenter_line where date_planned < %s and state in ('draft','pause')", (start_dt.replace(hour=23,minute=59,second=59),)) 
+            cr.execute("select id from mrp_production_workcenter_line where date_planned <= %s and state in ('draft') and workcenter_id = %s", (start_dt.replace(hour=23,minute=59,second=59),line[1].id)) 
         ids=[i[0] for i in cr.fetchall()]
+        print "---------------_get_sorted_planned_intervals----machine workcenter ids-",ids
         ops = self.pool.get('mrp.production.workcenter.line').browse(cr, uid, ids)
         date_and_hours_by_cal = [(op.date_planned, op.hour, op.workcenter_id.calendar_id.id,op.workcenter_id.resource_id.id or False) for op in ops if op.date_planned]
         intervals_dict = self.pool.get('resource.calendar').interval_get_multi(cr, uid, date_and_hours_by_cal)
+        print "----------intervals_dict",intervals_dict
         # extracting all intervals from the 
         for i in intervals_dict:
             for j in intervals_dict.get(i):
                 intervals.append(j)
         intervals=sorted(intervals, key=lambda date_time: date_time[0])
         print "====== in _get_sorted_planned_intervals",intervals
+        
+        if not end_dt:
+            cr.execute("select id from mrp_production_workcenter_line where state in ('pause','startworking') and date_start <= %s and workcenter_id = %s", (start_dt.replace(hour=23,minute=59,second=59),line[1].id))
+            ids=[i[0] for i in cr.fetchall()]
+            ops = self.pool.get('mrp.production.workcenter.line').browse(cr, uid, ids)
+            for op in ops:
+                value=op.hour-op.delay_actual
+                delay += value if value > 0 else 0
+            print "========delay in delay _get_sorted_planned_intervals",delay,op.name,op.workcenter_id.name,op.hour,op.delay_actual
+            return intervals,delay
         return intervals
+        
     
         
 

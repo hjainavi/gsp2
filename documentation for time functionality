@@ -1,0 +1,75 @@
+def _get_sorted_planned_intervals(self,cr,uid,line,start_dt,end_dt=None):
+
+	parameters -->
+	line = workcenter line for getting the workcenter_id(machine)
+	start_dt = starting date
+	end_dt = ending date
+
+	if only start_dt is given -- then all workorder whose date_planned < start_dt.replace(hour=23,minute=59,second=59) and state in ['draft','pause'] will be selected for the particular machine
+
+	if end_dt is given -- then all workorder whose start_dt < date_planned < end_dt and state in ['draft'] will be selected for the particular machine
+
+	Of the selcted workorders the  working intervals of these workorders will be extracted from the function self.pool.get('resource.calendar').interval_get_multi(cr, uid, date_and_hours_by_cal)
+
+	if only start_dt is given -- then all the workorders in pause/startworking state whose date_planned < start_dt.replace(hour=23,minute=59,second=59) will be selected for that particular machine----
+	and the delay of these workorder will be passed on ( delay = hours assigned - delay_actual)
+
+	*** returns the working intervals(start_time,end_time) of the workorders selected for the particular 		machine and 'delay'
+
+
+
+def _get_working_interval_and_hours_in_day(self,cr,uid,start_dt,line):
+
+	start_dt = start date
+	line = workcenter_lines in a routing
+	*** returns the working intervals and no of working hours (takes out leaves of the resource) on the 		start_dt
+
+
+
+def _hour_end_time(self, cr,uid,start_dt,line,planned_intervals,delay):
+
+	start_dt === datetime from where scheduling will start
+    line ==== line.sequence,line.workcenter_id,line.time_est_hour_nbr
+    planned_intervals =========  intervals of workorders scheduled after start_dt till start_dt(23:59:59)
+    delay ============ hours to fit in empty intervals
+    returns end_datetime after fitting the delay in empty intervals
+
+    while (delay > 0)
+    process ----->
+    	1) get the working intervals of the day.
+    	if 1):
+	    	2) remove intervals from planned intervals whose end_date <= start_dt.replace and start_date >= start_dt and store in intervals_remove and add hours of the removed intervals.
+	    	if 2): 
+		    	3) remove intervals_remove from working intervals of the day.
+		    	4) if (remaining_hours+hours_to_remove-hours_in_day)>0 then add additional delay due to overlapping intervals.
+		    	5) schedule delay hours in the remaining intervals.
+		    	6) if interval schedule delay hours(interval_schedule_hours) > remaining interval hours then delay -= remaining hours
+		    	   else delay_endtime =	interval_schedule_hours[-1][-1] 
+		   	if not 2):
+		   		3) schedule delay hours in the working interval of the day
+		   		4) if interval schedule delay hours(interval_schedule_hours) > working interval hours of a day  
+		   		   		then delay -= hours_in_day
+		   		   else delay_endtime =	interval_schedule_hours[-1][-1] 
+
+		2) start_dt=start_dt.replace(hour=0,minute=0,second=0)+timedelta(days=1)
+            end_dt=start_dt.replace(hour=23,minute=59,second=59)
+        3) 	get working interval of the workorders whose date_planned lie b/w the new start_dt,end_dt
+        	planned_intervals += self._get_sorted_planned_intervals(cr, uid, start_dt,end_dt)
+
+    *** returns end_datetime after fitting the delay in empty intervals
+
+
+
+def wc_line_end_time(self,cr,uid,start_dt,line,machine_start_end):
+	
+	start_dt = start datetime for the workcenter (line[1]) == end_time for the last workcenter or date_now
+	line = line.sequence,line.workcenter_id,line.time_est_hour_nbr
+	machine_start_end = dictionary contain the workcenter machines latest (start and end datetime) times
+
+	if machine not in machine_start_end dictionary == (means it has never been taken into account for time 														calculation for this sale order)
+		1) get all delayed past pending workorders
+		2) 
+
+
+		
+
