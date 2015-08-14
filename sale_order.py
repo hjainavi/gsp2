@@ -21,14 +21,22 @@ class sale_order_line(models.Model):
             raise except_orm(("Error"),("Please set the measurements in the product inventory page of product %s")%(self.paper_product.name_template))
         try:
             effective_paper_width=self.paper_product.product_width - (self.print_machine.edge_space*2) + self.print_machine.lap_bw_products
+            print "------------effective_paper_width-------",effective_paper_width
             effective_paper_height=self.paper_product.product_height - (self.print_machine.edge_space*2) + self.print_machine.lap_bw_products
+            print "------------effective_paper_height-------",effective_paper_height
             effective_manufacture_width=self.width + self.print_machine.lap_bw_products
+            print "------------effective_manufacture_width-------",effective_manufacture_width
             effective_manufacture_height=self.height + self.print_machine.lap_bw_products
+            print "------------effective_manufacture_height-------",effective_manufacture_height
             width_count=int(effective_paper_width/effective_manufacture_width)
+            print "------------width_count-------",width_count
             height_count=int(effective_paper_height/effective_manufacture_height)
+            print "------------height_count-------",height_count
             product_count=width_count*height_count
+            print "------------product_count-------",product_count
             self.product_count=product_count
             self.paper_amount=math.ceil(self.product_uom_qty/product_count)
+            print "------------self.paper_amount-------",self.paper_amount
         except:
             self.product_count=0.0
             self.paper_amount=0.0
