@@ -11,7 +11,7 @@ import pytz,math,copy
 @api.model
 def _tz_get(self):
     # put POSIX 'Etc/*' entries at the end to avoid confusing users - see bug 1086728
-    return [(tz,tz) for tz in sorted(pytz.all_timezones, key=lambda tz: tz if not tz.startswith('Etc/') else '_')]
+    return [(tz,tz+','+datetime.datetime.now(pytz.timezone(tz)).strftime('%z')) for tz in sorted(pytz.all_timezones) if not tz.startswith('Etc/')]
 
 
 class resource_calendar_attendance_local(osv.osv):
