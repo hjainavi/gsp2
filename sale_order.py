@@ -61,12 +61,12 @@ class sale_order_line(models.Model):
             self.width = 0
             self.height = 0
             
-    @api.onchange('manufacture_size','width','height','category_id','paper_product','saturation','additional_works','multi_level_bom','is_multi_level')
+    @api.onchange('manufacture_size','width','height','category_id','paper_product','saturation','additional_works','multi_level_bom','is_multi_level','product_uom_qty')
     def _onchange_desc(self):
         if self.is_multi_level:
             weight=0.0
             for rec in self.multi_level_bom:
-                weight=rec.paper_product.product_height * rec.paper_product.product_width * rec.paper_product.product_weight * rec.paper_amount/(1000*1000*1000)
+                weight=rec.height * rec.width * rec.paper_product.product_weight * rec.product_uom_qty*self.product_uom_qty/(1000*1000*1000)
                 for add_work in rec.additional_works:
                     amount=0.0
                     if add_work.service.workcenter.cost_method=='paper':amount=rec.paper_amount*add_work.qty
@@ -80,7 +80,7 @@ class sale_order_line(models.Model):
                 for add_work in rec.additional_works:
                     desc+= str(add_work.sequence or '') + ' ' +(add_work.product.name and '('+add_work.product.name+')' or '') +(add_work.service.name and '('+add_work.service.name+')' or '') + '\n'
         else:
-            weight=self.paper_product.product_height * self.paper_product.product_width * self.paper_product.product_weight * self.paper_amount/(1000*1000*1000)
+            weight=self.height * self.width * self.paper_product.product_weight * self.product_uom_qty/(1000*1000*1000)
             for add_work in self.additional_works:
                 amount=0.0
                 if add_work.service.workcenter.cost_method=='paper':amount=self.paper_amount*add_work.qty
