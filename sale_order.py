@@ -66,13 +66,13 @@ class sale_order_line(models.Model):
         if self.is_multi_level:
             weight=0.0
             for rec in self.multi_level_bom:
-                weight=rec.paper_product.product_height * rec.paper_product.product_width * rec.paper_product.product_weight * rec.paper_amount
+                weight=rec.paper_product.product_height * rec.paper_product.product_width * rec.paper_product.product_weight * rec.paper_amount/(1000*1000*1000)
                 for add_work in rec.additional_works:
                     amount=0.0
                     if add_work.service.workcenter.cost_method=='paper':amount=rec.paper_amount*add_work.qty
-                    if add_work.service.workcenter.cost_method=='product':amount=rec.product_uom_qty*add_work.qty*self.product_uom_qty
+                    if add_work.service.workcenter.cost_method=='product': amount=rec.product_uom_qty*add_work.qty*self.product_uom_qty
                     weight+=add_work.product.weight_net*amount
-            desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) +  "\n"
+            desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) + ' kg' +   "\n"
             
             for rec in self.multi_level_bom:
                 desc+= (rec.product_id.name or '') + ' ' + str(rec.width or '') + str(rec.width and ' mm' or '') + ' ' +  str(rec.height or '') + str(rec.height and ' mm ' or '') + (rec.bom_category_id.name or '') + ' ' + (rec.paper_product.name or '') + ' ' + str(rec.paper_product.product_weight or '') + (rec.paper_product.product_weight and rec.paper_product.weight_uom.name or '') + ' ' + (rec.saturation.display_name or '') + "\n"
@@ -80,13 +80,13 @@ class sale_order_line(models.Model):
                 for add_work in rec.additional_works:
                     desc+= str(add_work.sequence or '') + ' ' +(add_work.product.name and '('+add_work.product.name+')' or '') +(add_work.service.name and '('+add_work.service.name+')' or '') + '\n'
         else:
-            weight=self.paper_product.product_height * self.paper_product.product_width * self.paper_product.product_weight * self.paper_amount
+            weight=self.paper_product.product_height * self.paper_product.product_width * self.paper_product.product_weight * self.paper_amount/(1000*1000*1000)
             for add_work in self.additional_works:
                 amount=0.0
                 if add_work.service.workcenter.cost_method=='paper':amount=self.paper_amount*add_work.qty
                 if add_work.service.workcenter.cost_method=='product':amount=self.product_uom_qty*add_work.qty
                 weight+=add_work.product.weight_net*amount
-            desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) + "\n"
+            desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight)+ ' kg' + "\n"
             desc+= str(self.width or '') + str(self.width and ' mm ' or '') + ' ' + str(self.height or '') + str(self.height and ' mm ' or '') +   (self.category_id.name or '') + ' ' + (self.paper_product.name or '') + ' ' + str(self.paper_product.product_weight or '') + str(self.paper_product.product_weight and self.paper_product.weight_uom.name or '') + ' ' + str(self.saturation.display_name or '') + "\n"
             for add_work in self.additional_works:
                     desc+= str(add_work.sequence or '') + ' ' +(add_work.product.name and '('+add_work.product.name+')' or '') +(add_work.service.name and '('+add_work.service.name+')' or '') + '\n'
@@ -334,10 +334,10 @@ class sale_order(models.Model):
             print "picking_count============",picking_count
             self.picking_count=len(picking_count)
     
-    def _get_date_planned(self, cr, uid, order, line, start_date, context=None):
-        date_planned = datetime.strptime(order.date_confirm, DEFAULT_SERVER_DATETIME_FORMAT) + timedelta(days=line.delay or 0.0)
-        print "date_planned==========sale_order",date_planned
-        return date_planned
+    '''def _get_date_planned(self, cr, uid, order, line, start_date, context=None):
+        start_date = line.expected_delivery
+        print "date_planned==========sale_order in gsp2",start_date
+        return super(sale_order, self)._get_date_planned(cr, uid, order, line, start_date, context=context)'''
     
     date_confirm=fields.Datetime('Confirmation Date', readonly=True, select=True, help="Date on which sales order is confirmed.", copy=False)
     is_manufacture = fields.Boolean(string='Manufacture',default=False)
@@ -1019,6 +1019,9 @@ class component_cost(models.Model):
     
     product_id=fields.Many2one('product.product',string='Component')
     qty=fields.Float('Quantity')
+
+class sale_routing_workcenter(models.Model):
+    _name='sale.routing.workcenter'
 
 class sale_order_line_cost(models.Model):
     _name='sale.order.line.cost'
