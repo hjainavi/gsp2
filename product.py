@@ -27,11 +27,11 @@ class product_template(models.Model):
     produce_delay=fields.Float(default=0.0,string='Manufacturing Lead Time', help="Average delay in days to produce this product. In the case of multi-level BOM, the manufacturing lead times of the components will be added.")    
     sale_delay=fields.Float(default=0.0,string='Customer Lead Time', help="The average delay in days between the confirmation of the customer order and the delivery of the finished products. It's the time you promise to your customers.")
     
-    product_width = fields.Float(related=('product_variant_ids','product_width'),string = _('Paper Width'),required=True,default=0)
+    product_width = fields.Float(related=('product_variant_ids','product_width'),string = _('Paper Width'),required=True,default=0,help="Width in mm")
     width_uom=fields.Many2one(related=('product_variant_ids','width_uom'),default=get_mm_id)
-    product_height = fields.Float(related=('product_variant_ids','product_height'),string = _('Paper Height'),required=True,default=0)
+    product_height = fields.Float(related=('product_variant_ids','product_height'),string = _('Paper Height'),required=True,default=0,help="Height in mm")
     height_uom=fields.Many2one(related=('product_variant_ids','height_uom'),default=get_mm_id)
-    product_weight = fields.Float(related=('product_variant_ids','product_weight'),string = _('Paper Weight'),default=0)
+    product_weight = fields.Float(related=('product_variant_ids','product_weight'),string = _('Paper Weight'),default=0,help="Weight in gsm")
     weight_uom=fields.Many2one(related=('product_variant_ids','weight_uom'))
     workcenter=fields.Many2one(related=('product_variant_ids','workcenter'),string = _('Service Workcenter'),default=False)
     manufacturer=fields.Many2many('res.partner',string = _('Manufacturer'))
@@ -66,11 +66,11 @@ class product_product(models.Model):
             b=self.env['product.uom'].search([('id', '=', 1)])
             return b
         
-    product_width = fields.Float(string = _('Paper Width'),required=True,default=0)
+    product_width = fields.Float(string = _('Paper Width'),required=True,default=0,help="Width in mm")
     width_uom=fields.Many2one('product.uom',default=get_mm_id)
-    product_height = fields.Float(string = _('Paper Height'),required=True,default=0)
+    product_height = fields.Float(string = _('Paper Height'),required=True,default=0,help="Height in mm")
     height_uom=fields.Many2one('product.uom',default=get_mm_id)
-    product_weight = fields.Float(string = _('Paper Weight'),default=0)
+    product_weight = fields.Float(string = _('Paper Weight'),default=0,help="Weight in gsm")
     weight_uom=fields.Many2one('product.uom')
     workcenter=fields.Many2one('mrp.workcenter',string = _('Service Workcenter'),default=False)
     
