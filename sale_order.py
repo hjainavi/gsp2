@@ -211,12 +211,23 @@ class sale_order(models.Model):
     _inherit='sale.order'
     _description='changes in sale'
     
-    '''@api.multi
-    def name_get(self):
-        res = super(sale_order,self).name_get()
-        print "in name_get of sale.order"
-        print res
-        return res'''
+    
+    
+    '''def action_cancel(self, cr, uid, ids, context=None):
+        print "---------------in action_cancel in sale.order gsp2----"
+        if context is None:
+            context = {}
+        sale_order_line_obj = self.pool.get('sale.order.line')
+        proc_obj = self.pool.get('procurement.order')
+        stock_obj = self.pool.get('stock.picking')
+        for sale in self.browse(cr, uid, ids, context=context):
+            for pick in sale.picking_ids:
+                if pick.state not in ('draft', 'cancel'):
+                    raise osv.except_osv(
+                        _('Cannot cancel sales order!'),
+                        _('You must first cancel all delivery order(s) attached to this sales order.'))
+            stock_obj.signal_workflow(cr, uid, [p.id for p in sale.picking_ids], 'button_cancel')
+        return super(sale_order, self).action_cancel(cr, uid, ids, context=context)'''
     
     
     
