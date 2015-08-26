@@ -17,6 +17,7 @@ class sale_order_line(models.Model):
     @api.depends('paper_product','manufacture_size','print_machine','height','width','product_uom_qty')
     def _get_product_count(self):
         #print "================in get product count"
+        self._onchange_desc()
         if self.paper_product and (self.paper_product.product_width==0.0 or self.paper_product.product_height==0.0):
             raise except_orm(("Error"),("Please set the measurements in the product inventory page of product %s")%(self.paper_product.name_template))
         try:
