@@ -886,7 +886,7 @@ class sale_line_delivery_date(models.Model):
                 '''
         delay_endtime=False
         count_for_infinite_loop=0
-        while (delay>0 and count_for_infinite_loop<50000):
+        while (delay>0 and count_for_infinite_loop<100):
             count_for_infinite_loop += 1
             print "=====================delay",delay
             print "===============start_dt",start_dt
