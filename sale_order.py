@@ -776,42 +776,43 @@ class sale_line_delivery_date(models.Model):
     
     @api.depends()
     def get_expected_delivery_date(self):
-        pass
         print "==============self==-=-=-=-111",self._uid
         print "-------------in def get_expected_delivery_date(self)",self
         machine_start_end={}
-        for line in self:
-            print "\n \n \n \n \n \n \n \n \n \n \n \n----------sale line id",line.sale_line_id
-            #line.expected_delivery=fields.Datetime.now()
-            start_dt=False
-            obj=line.sudo().sale_line_id
-            if obj.order_id.date_confirm:
-                line.expected_delivery=obj.expected_delivery
-                continue
-            # if the sale order gets confirmed then the delivery date will not change and the value from sale line
-            # will be displayed in delivery dates tab
-            if obj.bom_line:
-                machine_start_end_multi={}
-                if obj.is_multi_level:
-                    for multi_line in obj.multi_level_bom:
-                        if multi_line.bom_line and multi_line.bom_line.routing_id:
-                            start_dt,res=self.sudo()._get_time_and_machine_times(multi_line,machine_start_end)
-                            for times in res:
-                                machine_start_end[times]=res[times]
-                                machine_start_end_multi[times]=res[times]
-                if obj.bom_line.routing_id:
-                    start_dt,res=self.sudo()._get_time_and_machine_times(obj,machine_start_end)
-                    for times in res:machine_start_end[times]=res[times]
-                else:
-                    start_dt=max(machine_start_end_multi[times][1] for times in machine_start_end_multi) if machine_start_end_multi else False
-                    # machine_start_end_multi are the starting and end times for this multi level lines only and a single sale line
-                    # machine_start_end are the starting and end times of machines for the whole sale order
-                if start_dt:
-                    line.expected_delivery=start_dt
-                    line.sudo().sale_line_id.write({'expected_delivery':start_dt})
-                    print "-----------------expected_delivery",start_dt
-                    print "-----------------machine_start_end",machine_start_end
-    
+        bypass=False
+        if bypass:
+            for line in self:
+                print "\n \n \n \n \n \n \n \n \n \n \n \n----------sale line id",line.sale_line_id
+                #line.expected_delivery=fields.Datetime.now()
+                start_dt=False
+                obj=line.sudo().sale_line_id
+                if obj.order_id.date_confirm:
+                    line.expected_delivery=obj.expected_delivery
+                    continue
+                # if the sale order gets confirmed then the delivery date will not change and the value from sale line
+                # will be displayed in delivery dates tab
+                if obj.bom_line:
+                    machine_start_end_multi={}
+                    if obj.is_multi_level:
+                        for multi_line in obj.multi_level_bom:
+                            if multi_line.bom_line and multi_line.bom_line.routing_id:
+                                start_dt,res=self.sudo()._get_time_and_machine_times(multi_line,machine_start_end)
+                                for times in res:
+                                    machine_start_end[times]=res[times]
+                                    machine_start_end_multi[times]=res[times]
+                    if obj.bom_line.routing_id:
+                        start_dt,res=self.sudo()._get_time_and_machine_times(obj,machine_start_end)
+                        for times in res:machine_start_end[times]=res[times]
+                    else:
+                        start_dt=max(machine_start_end_multi[times][1] for times in machine_start_end_multi) if machine_start_end_multi else False
+                        # machine_start_end_multi are the starting and end times for this multi level lines only and a single sale line
+                        # machine_start_end are the starting and end times of machines for the whole sale order
+                    if start_dt:
+                        line.expected_delivery=start_dt
+                        line.sudo().sale_line_id.write({'expected_delivery':start_dt})
+                        print "-----------------expected_delivery",start_dt
+                        print "-----------------machine_start_end",machine_start_end
+        
     def _get_time_and_machine_times(self,obj,machine_start_end):
         print "==============self==-=-=-=-333",self._uid
         data=[]
