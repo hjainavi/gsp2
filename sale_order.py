@@ -776,6 +776,7 @@ class sale_line_delivery_date(models.Model):
     
     @api.depends()
     def get_expected_delivery_date(self):
+        pass
         print "==============self==-=-=-=-111",self._uid
         print "-------------in def get_expected_delivery_date(self)",self
         machine_start_end={}
