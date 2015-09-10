@@ -114,14 +114,14 @@ class product_product(models.Model):
     def name_get(self):
         result = []
         if self._context.get('paper_product',False):
-            print "in name_get product.product",self._context
+            #print "in name_get product.product",self._context
             k=super(product_product,self).name_get()
             for i in k:
                 product=self.browse(i[0])
                 name=i[1]+(" (%s%sx%s%s,%s%s, Categ-%s )"%(product.product_width,product.width_uom.name or '',product.product_height,product.height_uom.name or '',product.product_weight,product.weight_uom.name or '',product.categ_id.name or '--'))
                 id_name=(i[0],name)
                 result.append(id_name)
-            print "--------in name_get product.product",result
+            #print "--------in name_get product.product",result
             return result
         return super(product_product,self).name_get()
     
