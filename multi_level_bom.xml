@@ -31,7 +31,7 @@
 						</div>
 						<group col="2" colspan="2">
 							<field name = "bom_category_id" />
-							<field name = "paper_product" options="{'limit': 1}" context="{'tree_view_ref': 'product_product_tree_view_many2one','search_default_categ_id':bom_category_id,'paper_product':True,'print_machine':print_machine}" domain="[('categ_id.is_paper','=',True)]" help="displays paper from the paper type product template" attrs = "{'required':[('manufacture_size','!=',False)]}"/>
+							<field name = "paper_product" context="{'tree_view_ref': 'product_product_tree_view_many2one','search_default_categ_id':bom_category_id,'paper_product':True,'print_machine':print_machine}" domain="[('categ_id.is_paper','=',True)]" help="displays paper from the paper type product template" attrs = "{'required':[('manufacture_size','!=',False)]}"/>
 						</group>
 						<group col="4" colspan="4">
 							<field name = "warehouse_qty" />
