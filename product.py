@@ -98,8 +98,7 @@ class product_product(models.Model):
                         print "====1",list
                     return list
 
-                if self._context.get('additional_service',False):
-
+               
                 if self._context.get('print_machine',False):
                     list=[]
                     obj=self.env['mrp.workcenter'].browse(self._context.get('print_machine'))
