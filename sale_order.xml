@@ -88,7 +88,8 @@
 						<field name="additional_works" context="{'additional_works':additional_works}">
 							<tree editable="bottom">
 								<field name="sequence"/>
-								<field name="service" domain="[('type','=','service')]" context="{'additional_service':parent.is_multi_level}"/>
+								<field name="service" domain="[('type','=','service')]" context="{'additional_service':parent.is_multi_level,'add_service':True}"/>
+								<!--'additional_service':parent.is_multi_level is added coz when the multi-level is on then the additional work can't have costing by paper  -->
 								<field name="service_qty"/>
 								<field name="product" domain="[('type','!=','service'),('route_ids','!=','mrp.route_warehouse0_manufacture')]"/>
 								<field name="qty"/>

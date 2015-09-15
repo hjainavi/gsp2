@@ -79,15 +79,26 @@ class product_product(models.Model):
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
         ids=super(product_product,self).name_search(name=name,args=args,operator='ilike',limit=100)
-        try:
-                if self._context.get('additional_service',False):
+        try:    
+                ''' two context because (add_service) in additional works we don't want service which uses workcenter cost method by sq_meter and (additional_service) because when the multi-level is on then the additional work can't have costing by paper '''
+                
+                if self._context.get('add_service',False):
                     list=[]
-                    for name_wk in range(len(ids)):
-                        product=self.browse(ids[name_wk][0])
-                        if product.workcenter.cost_method!='paper':
-                            list.append(ids[name_wk])
-                    print "====1",list
+                    if self._context.get('additional_service',False):
+                        for name_wk in range(len(ids)):
+                            product=self.browse(ids[name_wk][0])
+                            if product.workcenter.cost_method!='sq_meter' and product.workcenter.cost_method!='paper':
+                                list.append(ids[name_wk])
+                        print "====1",list
+                    else:
+                        for name_wk in range(len(ids)):
+                            product=self.browse(ids[name_wk][0])
+                            if product.workcenter.cost_method!='sq_meter':
+                                list.append(ids[name_wk])
+                        print "====1",list
                     return list
+
+                if self._context.get('additional_service',False):
 
                 if self._context.get('print_machine',False):
                     list=[]
