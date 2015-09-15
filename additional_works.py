@@ -31,7 +31,8 @@ class additional_works(models.Model):
         return res'''
     
     product=fields.Many2one('product.product',"Product", )
-    qty=fields.Float("Quantity",default=0.00)
+    qty=fields.Float("Product Qty",default=0.00)
+    service_qty=fields.Float("Service Qty",default=1.0)
     product_unit=fields.Many2one(compute='_onchange_product',comodel_name='product.uom',string="Unit")
     service=fields.Many2one('product.product',"Service")
     workcenter=fields.Many2one(compute='_onchange_service',comodel_name='mrp.workcenter',string="Workcenter")

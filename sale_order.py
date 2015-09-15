@@ -701,6 +701,7 @@ class sale_order(models.Model):
             if object.print_machine.cost_method == 'sq_meter':
                 if check123:print_routing_line['qty']=object.width*object.height*saturation*object.product_uom_qty*object.sale_order_line.product_uom_qty/1000000
                 if not check123:print_routing_line['qty']=object.width*object.height*saturation*object.product_uom_qty/1000000
+                print_routing_line['cost_by']="Sq. Meter"
             routing_lines.append([0,0,print_routing_line])
             return routing_lines
         
@@ -713,16 +714,16 @@ class sale_order(models.Model):
                 if not rec.service:continue
                 if check123:
                     if paper_amount!=0.0 and rec.service.workcenter.cost_method=='paper':
-                        cost_cycle=paper_amount
+                        cost_cycle=paper_amount*rec.service_qty
                         cost_by='Paper'
                     else:
-                        cost_cycle=object.product_uom_qty*object.sale_order_line.product_uom_qty
+                        cost_cycle=object.product_uom_qty*object.sale_order_line.product_uom_qty*rec.service_qty
                         cost_by="Product"
                 else:
-                    cost_cycle=object.product_uom_qty
+                    cost_cycle=object.product_uom_qty*rec.service_qty
                     cost_by="Product"
                     if not object.is_multi_level and paper_amount!=0.0 and rec.service.workcenter.cost_method=='paper':
-                        cost_cycle=paper_amount
+                        cost_cycle=paper_amount*rec.service_qty
                         cost_by="Paper"
                 cycle_nbr=math.ceil(cost_cycle/rec.workcenter.capacity_per_cycle)
                 vals_routing_lines={"name":rec.service.name,
@@ -1010,7 +1011,7 @@ class routing_cost(models.Model):
     
     name=fields.Char('Service')
     workcenter_id=fields.Many2one('mrp.workcenter','Workcenter')
-    qty=fields.Float('Quantity')
+    qty=fields.Float('Quantity(units/sq.m)')
     total_cost=fields.Float('Total Cost')
     saturation=fields.Char('Saturation')
     cost_by=fields.Char('Cost by')
