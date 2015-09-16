@@ -76,7 +76,7 @@
 						</group>
 						<group col="4" colspan="4">
 							<field name = "warehouse_qty" />
-							<field name = "print_machine" context="{'paper_product':paper_product}" attrs = "{'required':[('manufacture_size','!=',False)]}" domain="[('resource_type','=','material')]"/>
+							<field name = "print_machine" context="{'paper_product':paper_product}" attrs = "{'required':[('manufacture_size','!=',False)]}" domain="[('resource_type','=','material'),'|',('max_height','!=',0),('max_width','!=',0)]"/>
 							<field name = "product_count" />
 							<field name = "saturation" context="{'print_machine':print_machine}"/>
 							<field name = "paper_amount"/>

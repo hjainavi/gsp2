@@ -202,7 +202,7 @@ class mrp_workcenter(models.Model):
                         id_list.append(id)
                     elif rec.max_width == 0.0 and rec.max_height != 0.0 and (rec.max_height>=product_height or rec.max_height>=product_width):
                         id_list.append(id)
-                    elif (rec.max_height!=0 and rec.max_width!=0) or (rec.max_width == 0.0 and rec.max_height==0.0) or (rec.max_height>=product_height and rec.max_width>=product_width) or (rec.max_height>=product_width and rec.max_width>=product_height):
+                    elif (rec.max_height!=0 and rec.max_width!=0) and ((rec.max_height>=product_height and rec.max_width>=product_width) or (rec.max_height>=product_width and rec.max_width>=product_height)):
                         id_list.append(id)
             except:
                 raise
