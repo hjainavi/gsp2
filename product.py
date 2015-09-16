@@ -75,10 +75,11 @@ class product_product(models.Model):
     workcenter=fields.Many2one('mrp.workcenter',string = _('Service Workcenter'),default=False)
     
     
-    
-    @api.model
-    def name_search(self, name='', args=None, operator='ilike', limit=100):
-        ids=super(product_product,self).name_search(name=name,args=args,operator='ilike',limit=100)
+    @api.returns('self')
+    def search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False):
+        print "==== in search ===args,context= in gsp2*****==",self,args,context
+        if context.get('additional_service',False):
+            args = args + ['|',['workcenter', '=', False], ['workcenter.cost_method', '!=', 'paper']]
         try:    
                 ''' two context because (add_service) in additional works we don't want service which uses workcenter cost method by sq_meter and (additional_service) because when the multi-level is on then the additional work can't have costing by paper '''
                 
@@ -113,10 +114,14 @@ class product_product(models.Model):
                     print "====2",list
                     return list
         except:
-            raise
-            print "error in name_search of product.product"
-        print "in name_search of product.product returnig ids "
+            #raise
+            print "error in name_search of product.product *-*-*-*-*-***************-*-*-*-*-*-"
+        ids= super(product_product,self).search(cr, user, args, offset=offset, limit=limit, order=order, context=context, count=count)
+        print "in search of product.product returnig ids ",ids
         return ids
+
+
+    
     
     #changes name_get only in sale order line form in sale order 
     @api.multi
@@ -133,6 +138,7 @@ class product_product(models.Model):
                 result.append(id_name)
             #print "--------in name_get product.product",result
             return result
+        print "in name_get of product.product returnig ids "
         return super(product_product,self).name_get()
     
     

@@ -46,7 +46,7 @@
 							<field name="additional_works">
 								<tree editable="bottom">
 									<field name="sequence"/>
-									<field name="service" domain="[('type','=','service')]"  context="{'add_service':True}"/>
+									<field name="service" domain="[('type','=','service'), '|',('workcenter','=',False),('workcenter.cost_method','!=','sq_meter')]"  />
 									<field name="service_qty"/>
 									<field name="product" domain="[('type','!=','service'),('route_ids','!=','mrp.route_warehouse0_manufacture')]"/>
 									<field name="qty"/>

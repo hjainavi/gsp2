@@ -55,6 +55,9 @@ class additional_works(models.Model):
             print check
             if check.service and check.service.workcenter.cost_method=='paper' and check._name=='sale.order.line' and check.sale_order_line.is_multi_level:
                  raise except_orm(("Error"),("Please choose a service where Workcenter Cost Method is 'By Product' in additional works (%s)") % (check.service.name))
+            if self.service and self.service.workcenter and self.service.workcenter.cost_method=='sq_meter':
+                raise except_orm(("Error"),("Please choose a service where Workcenter Cost Method is not 'By Sq. Meter' in additional works (%s)") % (check.service.name))
+        
     
     @api.one
     @api.depends('service')
@@ -71,9 +74,10 @@ class additional_works(models.Model):
             raise except_orm(("Error"),("Please Set a Cost Method in the workcenter %s ") % (self.service.workcenter.name))
         if self.service and self.service.workcenter.cost_method=='paper' and self._name=='sale.order.line' and self.sale_order_line.is_multi_level:
             raise except_orm(("Error"),("Please choose a service where Workcenter Cost Method is 'By Product' in additional works (%s)") % (self.service.name))
-        if self.service and self.service.workcenter:
+        if self.service and self.service.workcenter and self.service.workcenter.cost_method=='sq_meter':
+            raise except_orm(("Error"),("Please choose a service where Workcenter Cost Method is not 'By Sq. Meter' in additional works (%s)") % (self.service.name))
+        if self.service and self.service.workcenter and self.service.workcenter.cost_method:
             self.workcenter=self.service.workcenter.id
-        if self.service and self.service.workcenter.cost_method:
             dict={'paper':'By Paper','product':'By Product','sq_meter':'Per Sq. meter'}
             self.costing_service=dict.get(self.service.workcenter.cost_method,None)
          
