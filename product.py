@@ -75,8 +75,8 @@ class product_product(models.Model):
     workcenter=fields.Many2one('mrp.workcenter',string = _('Service Workcenter'),default=False)
     
     
-    @api.returns('self')
-    def search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False):
+    
+    def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
         print "==== in search ===args,context= in gsp2*****==",self,args,context
         if context.get('additional_service',False):
             args = args + ['|',['workcenter', '=', False], ['workcenter.cost_method', '!=', 'paper']]
@@ -97,7 +97,7 @@ class product_product(models.Model):
         except:
             #raise
             print "error in name_search of product.product *-*-*-*-*-***************-*-*-*-*-*-"
-        ids= super(product_product,self).search(cr, user, args, offset=offset, limit=limit, order=order, context=context, count=count)
+        ids= super(product_product,self)._search(cr, user, args, offset, limit, order, context, count, access_rights_uid)
         print "in search of product.product returnig ids ",ids
         return ids
 

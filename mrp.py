@@ -184,10 +184,10 @@ class mrp_workcenter(models.Model):
     cost_method=fields.Selection(selection=[('paper','By Paper'),('product','By Product'),('sq_meter','Per Sq. meter')],string=_('Cost Method'),required=True,default='sq_meter')
             
     
-    @api.returns('self')
-    def search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False):
+    
+    def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
         print "==== in search ===args,context= in gsp2*****==",self,args,context
-        ids= super(product_product,self).search(cr, user, args, offset=offset, limit=limit, order=order, context=context, count=count)
+        ids= super(mrp_workcenter,self)._search(cr, user, args, offset, limit, order, context, count, access_rights_uid)
         if context.get('paper_product',False):
             try:
                 id_list=[]
