@@ -81,38 +81,19 @@ class product_product(models.Model):
         if context.get('additional_service',False):
             args = args + ['|',['workcenter', '=', False], ['workcenter.cost_method', '!=', 'paper']]
         try:    
-                ''' two context because (add_service) in additional works we don't want service which uses workcenter cost method by sq_meter and (additional_service) because when the multi-level is on then the additional work can't have costing by paper '''
-                
-                if self._context.get('add_service',False):
-                    list=[]
-                    if self._context.get('additional_service',False):
-                        for name_wk in range(len(ids)):
-                            product=self.browse(ids[name_wk][0])
-                            if product.workcenter.cost_method!='sq_meter' and product.workcenter.cost_method!='paper':
-                                list.append(ids[name_wk])
-                        print "====1",list
-                    else:
-                        for name_wk in range(len(ids)):
-                            product=self.browse(ids[name_wk][0])
-                            if product.workcenter.cost_method!='sq_meter':
-                                list.append(ids[name_wk])
-                        print "====1",list
-                    return list
-
-               
-                if self._context.get('print_machine',False):
-                    list=[]
-                    obj=self.env['mrp.workcenter'].browse(self._context.get('print_machine'))
-                    max_width=obj.max_width
-                    max_height=obj.max_height
-                    for name_wk in range(len(ids)):
-                        rec=self.browse(ids[name_wk][0])
-                        if max_height!=0 and rec.product_height<=max_height and rec.product_width<=max_width:
-                            list.append(ids[name_wk])
-                        if max_height==0 and rec.product_width<=max_width:
-                            list.append(ids[name_wk]) 
-                    print "====2",list
-                    return list
+            if context.get('print_machine',False):
+                obj=self.pool.get('mrp.workcenter').browse(cr,user,context.get('print_machine'))
+                max_width=obj.max_width
+                max_height=obj.max_height
+                if max_width==0 and max_height!=0:
+                    args = args + ['|',['product_height','<=',max_height], ['product_width','<=',max_height]]
+                elif max_width!=0 and max_height==0: 
+                    args = args + ['|',['product_height','<=',max_width], ['product_width','<=',max_width]]
+                elif max_width!=0 and max_height!=0:
+                    args = args + ['|','&',['product_height','<=',max_height], ['product_width','<=',max_width],'&',['product_height','<=',max_width], ['product_width','<=',max_height]]
+                else:
+                    # both are zero
+                    args = args + [['product_height','<=',max_width], ['product_width','<=',max_height]]
         except:
             #raise
             print "error in name_search of product.product *-*-*-*-*-***************-*-*-*-*-*-"

@@ -184,31 +184,34 @@ class mrp_workcenter(models.Model):
     cost_method=fields.Selection(selection=[('paper','By Paper'),('product','By Product'),('sq_meter','Per Sq. meter')],string=_('Cost Method'),required=True,default='sq_meter')
             
     
-    @api.model
-    def name_search(self, name='', args=None, operator='ilike', limit=100):
-        ids=super(mrp_workcenter,self).name_search(name=name,args=args,operator='ilike',limit=100)
-        #print "====================",self._context.get('paper_product',False)
-        if self._context.get('paper_product',False):
-            #print "=====================",self._context.get('paper_product',False)
-            obj=self.env['product.product'].browse(self._context.get('paper_product'))
-            #print "obj",obj
-            width=obj.product_width
-            height=obj.product_height
-            list=[]
-            records=self.search([])
-            for rec in records:
-                #print "===============",rec
-                if rec.max_width == 0.0:continue
-                if rec.max_height!=0 and rec.max_height>=height and rec.max_width>=width:
-                    for name_wk in range(len(ids)):
-                        if rec.id==ids[name_wk][0]:
-                            list.append(ids[name_wk])
-                if rec.max_height==0 and rec.max_width>=width:
-                    for name_wk in range(len(ids)):
-                        if rec.id==ids[name_wk][0]:
-                            list.append(ids[name_wk])
-            return list
+    @api.returns('self')
+    def search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False):
+        print "==== in search ===args,context= in gsp2*****==",self,args,context
+        ids= super(product_product,self).search(cr, user, args, offset=offset, limit=limit, order=order, context=context, count=count)
+        if context.get('paper_product',False):
+            try:
+                id_list=[]
+                #print "=====================",self._context.get('paper_product',False)
+                obj=self.pool.get('product.product').browse(cr,user,context.get('paper_product'))
+                #print "obj",obj
+                product_width=obj.product_width
+                product_height=obj.product_height
+                for id in ids:
+                    rec = self.browse(cr,user,id)
+                    if rec.max_width != 0.0 and rec.max_height == 0.0 and (rec.max_width>=product_height or rec.max_width>=product_width):
+                        id_list.append(id)
+                    elif rec.max_width == 0.0 and rec.max_height != 0.0 and (rec.max_height>=product_height or rec.max_height>=product_width):
+                        id_list.append(id)
+                    elif (rec.max_height!=0 and rec.max_width!=0) or (rec.max_width == 0.0 and rec.max_height==0.0) or (rec.max_height>=product_height and rec.max_width>=product_width) or (rec.max_height>=product_width and rec.max_width>=product_height):
+                        id_list.append(id)
+            except:
+                raise
+                print "error in name_search of mrp.workcenter"
+                return ids
+            return id_list
+        print "in search of mrp.workcenter returnig ids ",ids
         return ids
+
     
     @api.one
     @api.constrains('max_width','capacity_per_cycle')
