@@ -74,7 +74,9 @@ class sale_order_line(models.Model):
                     if add_work.service.workcenter.cost_method=='product': amount=rec.product_uom_qty*add_work.qty*self.product_uom_qty
                     weight+=add_work.product.weight_net*amount
             desc=(self.product_id.name or 'False') + ' Total weight ' + str(weight) + ' kg' +   "\n"
-            
+            for add_work in self.additional_works:
+                desc+= str(add_work.sequence or '') + ' ' +(add_work.product.name and '('+add_work.product.name+')' or '') +(add_work.service.name and '('+add_work.service.name+')' or '') + '\n'
+
             for rec in self.multi_level_bom:
                 desc+= (rec.product_id.name or '') + ' ' + str(rec.width or '') + str(rec.width and ' mm' or '') + ' ' +  str(rec.height or '') + str(rec.height and ' mm ' or '') + (rec.bom_category_id.name or '') + ' ' + (rec.paper_product.name or '') + ' ' + str(rec.paper_product.product_weight or '') + (rec.paper_product.product_weight and rec.paper_product.weight_uom.name or '') + ' ' + (rec.saturation.display_name or '') + "\n"
                     
@@ -437,7 +439,7 @@ class sale_order(models.Model):
             self.pool.get('mrp.bom').unlink(cr, SUPERUSER_ID, un_bom_id)
             print "in delete bom"
         except:
-            raise
+            #raise
             print "error in deletion delete_bom()"
     
     def create_bom_all(self,cr,uid,obj_cr_bom,sale_line_mrp_property):
