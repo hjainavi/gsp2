@@ -286,17 +286,22 @@ class resource_calendar(osv.osv):
         Byday was not used. Since saas-3, counts Leave hours instead of all-day leaves."""
         res = {}
         ##harsh## added resource_in_dict to get resource/workcenter for which interval is being calculated
+        print "=========0000000000=========interval_get_multi======="
         for res_dict in date_and_hours_by_cal:
+            print "==========111111"
             resource_in_dict=False
             if len(res_dict)==4:dt_str, hours, calendar_id,resource_in_dict=res_dict
             else:dt_str, hours, calendar_id=res_dict
+            print "==========222222222"
             result = self.schedule_hours(
                 cr, uid, calendar_id, hours,
                 day_dt=datetime.datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S').replace(second=0),
                 compute_leaves=True, resource_id=resource_in_dict or resource,
                 default_interval=(8, 16)
             )
+            print "=========3333333333"
             res[(dt_str, hours, calendar_id)] = result
+            print "=========444444444444"
         return res
 
 class mrp_production_workcenter_line(osv.osv):
