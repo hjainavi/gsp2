@@ -69,6 +69,7 @@ class resource_calendar(osv.osv):
     def _get_hour_weekday(self,cr,uid,time_diff_float,local_attendance):
         '''returns attendance_ids(UTC timings) from local_attendance timings'''
         res=[]
+        if local_attendance is None: local_attendance=[]
         for line in local_attendance:
             line_copy=copy.deepcopy(list(line))
             # for clarification http://stackoverflow.com/questions/184643/what-is-the-best-way-to-copy-a-list
@@ -169,13 +170,13 @@ class resource_calendar(osv.osv):
     
     def create(self,cr,uid,vals,context=None):
         time_diff_float=self._get_time_diff_float(cr, uid,vals.get('timezone'))
-        #print "==========in create of resource.calendar",vals
+        print "==========in create of resource.calendar",vals
         vals['attendance_ids']=self._get_hour_weekday(cr,uid,time_diff_float,vals.get('attendance_ids_local'))
-        #print "==========in create of resource.calendar",vals
+        print "==========in create of resource.calendar final",vals
         return super(resource_calendar, self).create(cr,uid,vals,context)
     
     def write(self,cr,uid,ids,vals,context=None):
-        #print "==========in write of resource.calendar",vals
+        print "==========in write of resource.calendar",vals
         #print "==========in read of resource.calendar",self.read(cr,uid,ids[0])
         attendance_ids=self.read(cr,uid,ids[0],['attendance_ids'])['attendance_ids']
         #print "attendance_ids",attendance_ids
@@ -184,7 +185,7 @@ class resource_calendar(osv.osv):
         vals['attendance_ids']=self._get_hour_weekday(cr,uid,time_diff_float,local_attendance)
         for id in attendance_ids:
             vals['attendance_ids'].append([2,id,False])
-        #print "-------------------write final vals",vals
+        print "-------------------write final vals",vals
         res=super(resource_calendar, self).write(cr,uid,ids,vals,context)
         return res
     
