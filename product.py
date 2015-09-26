@@ -119,7 +119,7 @@ class product_product(models.Model):
                 result.append(id_name)
             #print "--------in name_get product.product",result
             return result
-        print "in name_get of product.product returnig ids "
+        #print "in name_get of product.product returnig ids "
         return super(product_product,self).name_get()
     
     

@@ -69,19 +69,25 @@ class resource_calendar(osv.osv):
     def _get_hour_weekday(self,cr,uid,time_diff_float,local_attendance):
         '''returns attendance_ids(UTC timings) from local_attendance timings'''
         res=[]
+        #print local_attendance
         if local_attendance is None: local_attendance=[]
         for line in local_attendance:
+            #print "========line====",line
             line_copy=copy.deepcopy(list(line))
+            #print "========line_copy====",line_copy
             # for clarification http://stackoverflow.com/questions/184643/what-is-the-best-way-to-copy-a-list
             #print "=====id(line),id(line_1),id(line_copy)",id(line),id(line_1),id(line_copy)
             dict=line_copy[2]
+            #print "=======dict====",dict
             dict['dayofweek']=dict.pop('dayofweek_local')
             dict['hour_from']=dict.pop('local_hour_from')
             dict['hour_to']=dict.pop('local_hour_to')
+            #print "=======dict====",dict
             hour_from=time_diff_float+dict['hour_from']
             hour_to=time_diff_float+dict['hour_to']
             dayofweek=int(dict['dayofweek'])
             date_from=dict.get('date_from',False)
+            #print "=====hour_from,hour_to,dayofweek,date_from====",hour_from,hour_to,dayofweek,date_from
             if 0.0<=hour_from and hour_to<=24.0:
                 dict['hour_from']=hour_from if hour_from !=24.0 else 23.99
                 dict['hour_to']=hour_to if hour_to !=24.0 else 23.99
@@ -124,41 +130,6 @@ class resource_calendar(osv.osv):
         #print "----------------res",res
         return res
     
-    def _convert_write_vals(self,cr,uid,ids,vals):
-        ''' coverting attendance_local values to use in _get_hour_weekday '''
-        obj=self.browse(cr,uid,ids[0])
-        if vals.get('timezone',False) or vals.get('attendance_ids_local',False):
-            timezone=vals.get('timezone',False) or obj.timezone
-            time_diff_float=self._get_time_diff_float(cr, uid,timezone)
-            local_attendance=[]
-            
-            if vals.get('attendance_ids_local',False):
-                for att in obj.attendance_ids_local:
-                    dict_att={'name':att.name,
-                              'dayofweek_local':att.dayofweek_local,
-                              'date_from':att.date_from or False,
-                              'local_hour_from':att.local_hour_from,
-                              'local_hour_to':att.local_hour_to,
-                              }
-                    for element in vals['attendance_ids_local']:
-                        if att.id==element[1] and element[2]:
-                            for check in element[2]:
-                                dict_att[check]=element[2][check]
-                    local_attendance.append([0,0,dict_att])
-            
-            else:            
-                for att in obj.attendance_ids_local:
-                    dict_att={'name':att.name,
-                              'dayofweek_local':att.dayofweek_local,
-                              'date_from':att.date_from or False,
-                              'local_hour_from':att.local_hour_from,
-                              'local_hour_to':att.local_hour_to,
-                              }
-                    local_attendance.append([0,0,dict_att])
-            #print "-------------local_attendance",local_attendance
-            return time_diff_float,local_attendance
-        return 0.0,[]
-    
     
     def _get_time_diff_float(self, cr, uid,timezone):
         '''returns the time difference between the timezone and UTC'''
@@ -170,23 +141,25 @@ class resource_calendar(osv.osv):
     
     def create(self,cr,uid,vals,context=None):
         time_diff_float=self._get_time_diff_float(cr, uid,vals.get('timezone'))
-        print "==========in create of resource.calendar",vals
+        #print "==========in create of resource.calendar",vals
         vals['attendance_ids']=self._get_hour_weekday(cr,uid,time_diff_float,vals.get('attendance_ids_local'))
-        print "==========in create of resource.calendar final",vals
+        #print "==========in create of resource.calendar final",vals
         return super(resource_calendar, self).create(cr,uid,vals,context)
     
     def write(self,cr,uid,ids,vals,context=None):
-        print "==========in write of resource.calendar",vals
-        #print "==========in read of resource.calendar",self.read(cr,uid,ids[0])
-        attendance_ids=self.read(cr,uid,ids[0],['attendance_ids'])['attendance_ids']
-        #print "attendance_ids",attendance_ids
-        res=self._convert_write_vals(cr,uid,ids,vals)
-        time_diff_float,local_attendance=res[0],res[1]
-        vals['attendance_ids']=self._get_hour_weekday(cr,uid,time_diff_float,local_attendance)
-        for id in attendance_ids:
-            vals['attendance_ids'].append([2,id,False])
-        print "-------------------write final vals",vals
         res=super(resource_calendar, self).write(cr,uid,ids,vals,context)
+        #print "==========in write of resource.calendar==vals,ids",vals,ids
+        #print "==========in read of resource.calendar",self.read(cr,uid,ids)
+        obj=self.browse(cr,uid,ids[0],context)
+        cr.execute("delete from resource_calendar_attendance where calendar_id=%s" %(obj.id))
+        local_attendance=[]
+        time_diff_float=self._get_time_diff_float(cr, uid,obj.timezone)
+        for line in obj.attendance_ids_local:
+            vals_local=(0, 0, {'dayofweek_local': line.dayofweek_local, 'local_hour_to': line.local_hour_to, 'name': line.name, 'local_hour_from': line.local_hour_from, 'date_from': line.date_from,'calendar_id':line.calendar_id_local.id})
+            local_attendance.append(vals_local)
+        attendance=self._get_hour_weekday(cr,uid,time_diff_float,local_attendance)
+        for line in attendance:
+            self.pool.get("resource.calendar.attendance").create(cr,uid,line[2],context)
         return res
     
     
