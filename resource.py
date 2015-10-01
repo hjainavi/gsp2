@@ -13,6 +13,13 @@ def _tz_get(self):
     # put POSIX 'Etc/*' entries at the end to avoid confusing users - see bug 1086728
     return [(tz,tz+','+datetime.datetime.now(pytz.timezone(tz)).strftime('%z')) for tz in sorted(pytz.all_timezones) if not tz.startswith('Etc/')]
 
+class resource_calendar_attendance(osv.osv):
+    _inherit = "resource.calendar.attendance"
+    
+    _columns = {
+        'calendar_id' : fields.many2one("resource.calendar", "Resource's Calendar", required=True,ondelete='cascade'),
+    }
+
 
 class resource_calendar_attendance_local(osv.osv):
     _name = "resource.calendar.attendance.local"
