@@ -27,7 +27,7 @@
 						<div>
 							<label for="manufacture_size"/>
 							<field name="manufacture_size" />
-							<strong>Width </strong><field class = "oe_inline" name="width" nolabel = "1"  /><b>mm</b>  X  <strong>Height </strong><field class = "oe_inline" name = "height" nolabel = "1"  /><b>mm</b>
+							<strong>Height </strong><field class = "oe_inline" name="height" nolabel = "1"  /><b>mm</b>  X  <strong>Width </strong><field class = "oe_inline" name = "width" nolabel = "1"  /><b>mm</b>
 						</div>
 						<group col="2" colspan="2">
 							<field name = "bom_category_id" />

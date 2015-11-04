@@ -114,14 +114,13 @@ class product_product(models.Model):
             k=super(product_product,self).name_get()
             for i in k:
                 product=self.browse(i[0])
-                name=i[1]+(" (%s%sx%s%s,%s%s, Categ-%s )"%(product.product_width,product.width_uom.name or '',product.product_height,product.height_uom.name or '',product.product_weight,product.weight_uom.name or '',product.categ_id.name or '--'))
+                name=i[1]+(" (%s%s(W) x %s%s(H), %s%s, Categ-%s )"%(product.product_width,product.width_uom.name or '',product.product_height,product.height_uom.name or '',product.product_weight,product.weight_uom.name or '',product.categ_id.name or '--'))
                 id_name=(i[0],name)
                 result.append(id_name)
             #print "--------in name_get product.product",result
             return result
         #print "in name_get of product.product returnig ids "
         return super(product_product,self).name_get()
-    
     
     
     

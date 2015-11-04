@@ -2,7 +2,6 @@
 from openerp import models, fields, api, _
 from openerp.exceptions import except_orm
 import math
-import openerp.addons.decimal_precision as dp
 from openerp import SUPERUSER_ID
 from datetime import datetime, timedelta
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
@@ -42,7 +41,7 @@ class sale_order_line(models.Model):
             self.product_count=0.0
             self.paper_amount=0.0
             print "error encountered in get_product_count========"
-            
+    
     @api.one
     @api.depends('paper_product')
     def _get_quantity_available(self):
