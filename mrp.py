@@ -2,7 +2,6 @@
 from openerp import models, fields, api, _
 from openerp.exceptions import except_orm
 import time
-import openerp.addons.decimal_precision as dp
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.tools import float_compare
 from openerp.tools.translate import _
@@ -94,7 +93,15 @@ class procurement_order(models.Model):
                         
         return res
 
-
+    def _prepare_mo_vals(self, cr, uid, procurement, context=None):
+        res=super(procurement_order, self)._prepare_mo_vals(cr,uid,procurement,context)
+        result = procurement.move_dest_id and procurement.move_dest_id.procurement_id and procurement.move_dest_id.procurement_id.sale_line_id and procurement.move_dest_id.procurement_id.sale_line_id.order_id or False
+        if result and result.is_manufacture and result.mo_location_dest_id:
+            res['location_dest_id']=result.mo_location_dest_id.id
+        print "====mo_vals===result===",result 
+        return res
+                    
+    
     
     def check_bom_exists(self, cr, uid, ids, context=None):
         """ Finds the bill of material for the product from procurement order.

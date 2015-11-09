@@ -363,6 +363,7 @@ class sale_order(models.Model):
     edited_by_bom_button=fields.Boolean()
     sale_sale_line_cost=fields.One2many('sale.order.line.cost','sale_sale_line_cost',string='Sale Line Cost (Manufactured Product)',readonly=True,copy=False)
     sale_delivery_date=fields.One2many('sale.line.delivery.date','sale_delivery_date_rel',string="Expected Delivery Date (Manufactured Product)")
+    mo_location_dest_id=fields.Many2one(comodel_name='stock.location', string='Produced Product Location',domain=[('usage','=','internal')])
     
     
     def get_sale_lines_time(self,cr,uid,sale_obj):

@@ -27,6 +27,7 @@
 	            <!-- form_view_ref used for which view to open (of object crm.lead) when clicked on many2one field -->
 				<xpath expr="/form/sheet/group/group" position= "inside">
 					<field name="is_manufacture" attrs="{'readonly':[('state','not in',['draft','sent'])]}"/>
+					<field name="mo_location_dest_id" attrs="{'invisible':[('is_manufacture','=',False)]}"/>
 					<!-- <field name="production_date"/>  -->
 					<!--  <widget type="change_view"/>-->
 				</xpath>
