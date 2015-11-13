@@ -195,6 +195,7 @@ class mrp_workcenter(models.Model):
     def _search(self, cr, user, args, offset=0, limit=None, order=None, context=None, count=False, access_rights_uid=None):
         print "==== in search ===args,context= in gsp2*****==",self,args,context
         ids= super(mrp_workcenter,self)._search(cr, user, args, offset, limit, order, context, count, access_rights_uid)
+        if context is None:context={}
         if context.get('paper_product',False):
             try:
                 id_list=[]
