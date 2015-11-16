@@ -118,7 +118,7 @@ class mrp_production_workcenter_line(osv.osv):
     
         cr.execute("select id from mrp_production order by id desc")
         mrp_ids=cr.fetchall()
-        if mrp_ids:
+        if mrp_ids and present_user_allowed_workcenters:
             for production_id in mrp_ids:
                 cr.execute("select id,sequence,production_id from mrp_production_workcenter_line where production_id = %s and state not in ('done','cancel') and workcenter_id in %s order by sequence limit 1",(production_id[0], tuple(present_user_allowed_workcenters)))
                 rec_cr=cr.fetchall()
